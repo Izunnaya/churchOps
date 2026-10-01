@@ -1,0 +1,88 @@
+Attendance — Add first-timer
+Attendance — Capture
+Attendance — Empty state
+Auth — Account disabled
+Auth — Account pending approval
+Auth — Create account
+Auth — Forgot password
+Auth — Login
+Auth — My profile / change password
+Auth — Reset password
+Auth — Verify email
+Department — Quarterly report
+Department — Quarterly validation
+Desktop — Account disabled
+Desktop — Account pending
+Desktop — Add category
+Desktop — Approve account modal
+Desktop — Create account
+Desktop — Forgot password
+Desktop — Leader approvals
+Desktop — Leader dashboard
+Desktop — Leader quarterly form
+Desktop — Leader quarterly validation
+Desktop — Leader reports empty
+Desktop — Leader returned report
+Desktop — Leader view report
+Desktop — Leader weekly form
+Desktop — Login
+Desktop — Notifications
+Desktop — Notifications empty
+Desktop — Reset password
+Desktop — Role switcher open
+Desktop — Secretary dashboard
+Desktop — Set-aside duplicate
+Desktop — Set-aside missing sex
+Desktop — Treasurer dashboard
+Desktop — Usher add first-timer
+Desktop — Usher attendance
+Desktop — Usher attendance empty
+Desktop — Verify email
+Leader — View report
+Offering — Add category sheet
+Offering — Add category sheet (transfer)
+Offering — Category count
+Offering — Draft (category-first)
+Offering — Empty state
+Offering — Finalize confirm
+Offering — Finalized and approved
+Offering — Revised
+Pastor — Approve with comment
+Pastor — Department reports
+Pastor — Expense approval
+Pastor — Weekly financial report
+Report — Empty state
+Report — My reports list
+Report — Weekly form
+Secretary — Add chooser
+Secretary — Add member
+Secretary — Attendance compiled
+Secretary — Attendance entry
+Secretary — Dashboard
+Secretary — Import complete
+Secretary — Import register
+Secretary — Leader approvals
+Secretary — Manage departments
+Secretary — Member profile
+Secretary — Members
+Secretary — Members empty (launch)
+Secretary — Members with set-aside reminder
+Secretary — Report queues
+Secretary — Resolve duplicate
+Secretary — Return for correction
+Secretary — Search
+Secretary — Services and events
+Secretary — Set-aside resolved
+Secretary — Set-aside rows
+Secretary — Visitors
+Secretary — Weekly report review
+Shared — Expense history
+Shared — Full financial report
+Shared — Notifications
+Treasurer — Bucket rates
+Treasurer — Comment received
+Treasurer — Dashboard
+Treasurer — Offering history
+Treasurer — Record revision
+Treasurer — Weekly expenses
+Treasurer — Weekly financial report

@@ -1,0 +1,723 @@
+// Church Operations Platform — data model
+//
+// Derived from design/DESIGN-SPEC.md. Two rules from the brief shape this
+// schema more than anything else:
+//
+//   1. "The treasurer never types a total, at any level." No computed total is
+//      ever stored. Category cash totals derive from DenominationCount rows,
+//      offering totals derive from their categories, and bucket deductions
+//      derive from IncomeCategory.bucketRatePercent. Storing them would let a
+//      stale total outlive the counts behind it.
+//   2. "A late transfer creates a revision, never an overwrite." Finalized
+//      offerings are never mutated in place; OfferingRevision records what
+//      changed, who changed it, when and why.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Identity and access
+// ---------------------------------------------------------------------------
+
+enum Role {
+  TREASURER
+  SECRETARY
+  PASTOR
+  DEPARTMENT_LEADER
+  USHER
+}
+
+/// A department leader self-registers and stays inactive until the Secretary
+/// approves. The other four roles are seeded directly — there is only ever one
+/// of each, so the brief deliberately gives them no signup screen.
+enum UserStatus {
+  PENDING_VERIFICATION
+  PENDING_APPROVAL
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  fullName     String
+  email        String     @unique
+  phone        String
+  username     String     @unique
+  passwordHash String
+  status       UserStatus @default(PENDING_VERIFICATION)
+
+  emailVerifiedAt DateTime?
+  approvedAt      DateTime?
+  approvedById    String?
+  approvedBy      User?     @relation("UserApprovals", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedUsers   User[]    @relation("UserApprovals")
+  disabledAt      DateTime?
+  lastLoginAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roles    UserRole[]
+  sessions Session[]
+
+  emailTokens    EmailVerificationToken[]
+  passwordTokens PasswordResetToken[]
+
+  notifications Notification[]
+  auditEvents   AuditEvent[]
+  comments      ApprovalComment[]
+
+  membersAdded        Member[]                @relation("MemberAddedBy")
+  servicesCreated     Service[]               @relation("ServiceCreatedBy")
+  attendanceMarked    AttendanceRecord[]      @relation("AttendanceMarkedBy")
+  attendanceCompiled  AttendanceSummary[]     @relation("AttendanceCompiledBy")
+  offeringsRecorded   Offering[]              @relation("OfferingRecordedBy")
+  offeringsFinalized  Offering[]              @relation("OfferingFinalizedBy")
+  offeringsApproved   Offering[]              @relation("OfferingApprovedBy")
+  revisionsRecorded   OfferingRevision[]      @relation("RevisionRecordedBy")
+  categoriesMaintained IncomeCategory[]       @relation("IncomeCategoryUpdatedBy")
+  reportsPrepared     WeeklyFinancialReport[] @relation("FinancialReportPreparedBy")
+  reportsApproved     WeeklyFinancialReport[] @relation("FinancialReportApprovedBy")
+  expensesPrepared    WeeklyExpense[]         @relation("ExpensePreparedBy")
+  expensesApproved    WeeklyExpense[]         @relation("ExpenseApprovedBy")
+  deptReportsSubmitted DepartmentReport[]     @relation("DeptReportSubmittedBy")
+  deptReportsReviewed  DepartmentReport[]     @relation("DeptReportReviewedBy")
+  importsUploaded     MemberImport[]          @relation("ImportUploadedBy")
+  importRowsResolved  MemberImportRow[]       @relation("ImportRowResolvedBy")
+
+  @@index([status])
+}
+
+/// Roles are a list, not a column: the brief gives the Treasurer and Department
+/// Leader a role switcher, so one person can hold several. departmentId is set
+/// only for DEPARTMENT_LEADER.
+model UserRole {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, role, departmentId])
+  @@index([role])
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken String    @unique
+  userAgent    String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Church membership
+// ---------------------------------------------------------------------------
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+/// An usher adds a first-timer on the spot with only a name and phone, so
+/// almost every field here has to be optional. The Secretary later converts
+/// them to MEMBER from the Visitors screen.
+enum MemberKind {
+  MEMBER
+  FIRST_TIMER
+}
+
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Member {
+  id        String       @id @default(cuid())
+  firstName String
+  lastName  String
+  sex       Sex?
+  phone     String?
+  email     String?
+  address   String?
+  kind      MemberKind   @default(MEMBER)
+  status    MemberStatus @default(ACTIVE)
+
+  joinedAt    DateTime?
+  firstSeenAt DateTime?
+  convertedAt DateTime?
+  notes       String?
+
+  addedById String?
+  addedBy   User?   @relation("MemberAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attendance  AttendanceRecord[]
+  departments DepartmentMember[]
+  importRows  MemberImportRow[]  @relation("ImportRowResolvedMember")
+  duplicateOf MemberImportRow[]  @relation("ImportRowDuplicateOf")
+
+  // Attendance capture must find a known member in under 5 seconds, so the
+  // search index carries the name columns the usher actually types into.
+  @@index([lastName, firstName])
+  @@index([kind, status])
+  @@index([phone])
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leaders UserRole[]
+  members DepartmentMember[]
+  reports DepartmentReport[]
+}
+
+model DepartmentMember {
+  id           String     @id @default(cuid())
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  memberId     String
+  member       Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  addedAt      DateTime   @default(now())
+
+  @@unique([departmentId, memberId])
+}
+
+// ---------------------------------------------------------------------------
+// Services and attendance
+// ---------------------------------------------------------------------------
+
+/// The Secretary creates the one-off events — Mount Carmel, conventions,
+/// vigils — that do not fit the fixed weekly rhythm.
+enum ServiceKind {
+  SUNDAY_FIRST
+  SUNDAY_SECOND
+  MIDWEEK
+  VIGIL
+  CONVENTION
+  SPECIAL
+}
+
+model Service {
+  id     String      @id @default(cuid())
+  name   String
+  kind   ServiceKind
+  heldOn DateTime    @db.Date
+
+  createdById String?
+  createdBy   User?   @relation("ServiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attendance AttendanceRecord[]
+  summary    AttendanceSummary?
+  offering   Offering?
+
+  @@unique([heldOn, kind])
+  @@index([heldOn])
+}
+
+enum AttendanceSource {
+  USHER
+  SECRETARY
+}
+
+model AttendanceRecord {
+  id        String  @id @default(cuid())
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  memberId  String
+  member    Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  source     AttendanceSource @default(USHER)
+  markedById String?
+  markedBy   User?            @relation("AttendanceMarkedBy", fields: [markedById], references: [id], onDelete: SetNull)
+  markedAt   DateTime         @default(now())
+
+  /// Set when the row arrived from the usher's offline queue rather than live,
+  /// so a replayed mark is distinguishable from one made at the door.
+  capturedOfflineAt DateTime?
+
+  @@unique([serviceId, memberId])
+  @@index([serviceId])
+  @@index([memberId])
+}
+
+/// The Secretary's compiled headcount for a service. Per-member marks and the
+/// compiled figures are one system, not two: the compiled row is a snapshot the
+/// Secretary confirms, and headcounts that were never marked by name (children,
+/// for instance) live only here.
+model AttendanceSummary {
+  id        String  @id @default(cuid())
+  serviceId String  @unique
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  men         Int @default(0)
+  women       Int @default(0)
+  children    Int @default(0)
+  firstTimers Int @default(0)
+
+  compiledById String?
+  compiledBy   User?     @relation("AttendanceCompiledBy", fields: [compiledById], references: [id], onDelete: SetNull)
+  compiledAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Offering — category-first
+// ---------------------------------------------------------------------------
+
+enum OfferingStatus {
+  DRAFT
+  FINALIZED
+  APPROVED
+  REVISED
+}
+
+model Offering {
+  id        String  @id @default(cuid())
+  serviceId String  @unique
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  status OfferingStatus @default(DRAFT)
+  notes  String?
+
+  recordedById String?
+  recordedBy   User?   @relation("OfferingRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  finalizedById String?
+  finalizedBy   User?     @relation("OfferingFinalizedBy", fields: [finalizedById], references: [id], onDelete: SetNull)
+  finalizedAt   DateTime?
+
+  approvedById String?
+  approvedBy   User?     @relation("OfferingApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categories OfferingCategory[]
+  revisions  OfferingRevision[]
+  comments   ApprovalComment[]
+
+  @@index([status])
+}
+
+/// Each category carries its own denomination count, because Tithe and Worship
+/// Offering arrive in their own envelopes and are counted separately. Transfer
+/// categories (Seed Faith, Special Offering, Donations) have no cash behind
+/// them and hold a flat transferAmount instead.
+///
+/// There is no `total` column by design. A cash category's total is
+/// SUM(denomination * quantity) over its DenominationCount rows.
+model OfferingCategory {
+  id         String   @id @default(cuid())
+  offeringId String
+  offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  name      String
+  sortOrder Int    @default(0)
+
+  /// false = transfer with no physical cash, so no denomination breakdown.
+  isCash Boolean @default(true)
+
+  /// Set only when isCash is false. Cash categories leave this null and derive
+  /// their total from the counts.
+  transferAmount Decimal? @db.Decimal(14, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  denominations DenominationCount[]
+
+  @@unique([offeringId, name])
+  @@index([offeringId])
+}
+
+/// One row per note value the treasurer counted for a category, e.g.
+/// denomination 1000, quantity 23.
+model DenominationCount {
+  id         String           @id @default(cuid())
+  categoryId String
+  category   OfferingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  denomination Int
+  quantity     Int @default(0)
+
+  @@unique([categoryId, denomination])
+  @@index([categoryId])
+}
+
+/// A late transfer after finalization. The original figures stay on the
+/// offering's categories; this records the delta so both the original and the
+/// revised total can be shown side by side, with who, when and why.
+model OfferingRevision {
+  id         String   @id @default(cuid())
+  offeringId String
+  offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  reason String
+
+  categoryName String?
+  deltaAmount  Decimal @db.Decimal(14, 2)
+
+  /// Snapshotted so the revision stays readable even if categories change later.
+  originalTotal Decimal @db.Decimal(14, 2)
+  revisedTotal  Decimal @db.Decimal(14, 2)
+
+  recordedById String?
+  recordedBy   User?    @relation("RevisionRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
+  recordedAt   DateTime @default(now())
+
+  @@index([offeringId])
+}
+
+/// The treasurer-maintainable category list, and the bucket rate table the
+/// corrections doc asks for, in one place — a separate rate table keyed by name
+/// would drift out of step with the category names it is meant to match.
+///
+/// The deduction itself is never stored: it is amount * bucketRatePercent,
+/// computed at read time.
+model IncomeCategory {
+  id   String @id @default(cuid())
+  name String @unique
+
+  /// Seed Faith, Special Offering and Donations default to transfer.
+  isCashByDefault Boolean @default(true)
+
+  /// Percentage set aside into the contingency bucket, e.g. 10.00 for Tithe,
+  /// 40.00 for Missionary Offering. Null means this category is not bucketed.
+  bucketRatePercent Decimal? @db.Decimal(5, 2)
+
+  sortOrder Int     @default(0)
+  active    Boolean @default(true)
+
+  updatedById String?
+  updatedBy   User?   @relation("IncomeCategoryUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Financial reporting
+// ---------------------------------------------------------------------------
+
+enum FinancialReportStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+}
+
+/// Which offerings belong to a week is derived from Service.heldOn falling
+/// inside [weekStart, weekEnd], so a revision recorded later is picked up
+/// without touching this row.
+model WeeklyFinancialReport {
+  id        String   @id @default(cuid())
+  weekStart DateTime @db.Date
+  weekEnd   DateTime @db.Date
+
+  status FinancialReportStatus @default(DRAFT)
+
+  /// The WhatsApp report this replaces carries explanations and an approval
+  /// request, so the generated report has to support prose, not only tables.
+  narrative String?
+
+  preparedById String?
+  preparedBy   User?     @relation("FinancialReportPreparedBy", fields: [preparedById], references: [id], onDelete: SetNull)
+  submittedAt  DateTime?
+
+  approvedById String?
+  approvedBy   User?     @relation("FinancialReportApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments ApprovalComment[]
+
+  @@unique([weekStart])
+  @@index([status])
+}
+
+enum ExpenseStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+}
+
+model WeeklyExpense {
+  id        String        @id @default(cuid())
+  weekStart DateTime      @unique @db.Date
+  weekEnd   DateTime      @db.Date
+  status    ExpenseStatus @default(DRAFT)
+  notes     String?
+
+  preparedById String?
+  preparedBy   User?     @relation("ExpensePreparedBy", fields: [preparedById], references: [id], onDelete: SetNull)
+  submittedAt  DateTime?
+
+  approvedById String?
+  approvedBy   User?     @relation("ExpenseApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items    ExpenseItem[]
+  comments ApprovalComment[]
+
+  @@index([status])
+}
+
+model ExpenseItem {
+  id        String        @id @default(cuid())
+  expenseId String
+  expense   WeeklyExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  name      String
+  amount    Decimal @db.Decimal(14, 2)
+  note      String?
+  sortOrder Int     @default(0)
+
+  @@index([expenseId])
+}
+
+/// Lets the Pastor raise a question without it counting as approval or
+/// rejection, on either approval surface. Visible to whoever submitted.
+/// Exactly one of the four targets is set.
+model ApprovalComment {
+  id       String @id @default(cuid())
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body     String
+
+  financialReportId String?
+  financialReport   WeeklyFinancialReport? @relation(fields: [financialReportId], references: [id], onDelete: Cascade)
+
+  weeklyExpenseId String?
+  weeklyExpense   WeeklyExpense? @relation(fields: [weeklyExpenseId], references: [id], onDelete: Cascade)
+
+  offeringId String?
+  offering   Offering? @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+
+  departmentReportId String?
+  departmentReport   DepartmentReport? @relation(fields: [departmentReportId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([financialReportId])
+  @@index([weeklyExpenseId])
+  @@index([offeringId])
+  @@index([departmentReportId])
+}
+
+// ---------------------------------------------------------------------------
+// Department reports
+// ---------------------------------------------------------------------------
+
+enum ReportKind {
+  WEEKLY
+  QUARTERLY
+}
+
+/// Editable after submission only until the Secretary begins review. Once
+/// UNDER_REVIEW or APPROVED, the leader edits again only after a RETURNED.
+enum DepartmentReportStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  RETURNED
+}
+
+model DepartmentReport {
+  id           String     @id @default(cuid())
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  kind        ReportKind
+  periodStart DateTime   @db.Date
+  periodEnd   DateTime   @db.Date
+
+  status DepartmentReportStatus @default(DRAFT)
+
+  // Weekly shape
+  attendanceCount Int?
+  offeringAmount  Decimal? @db.Decimal(14, 2)
+  visitorCount    Int?
+
+  // Quarterly shape — prose rather than numbers
+  achievements String?
+  projections  String?
+  challenges   String?
+
+  submittedById String?
+  submittedBy   User?     @relation("DeptReportSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+  submittedAt   DateTime?
+
+  reviewedById String?
+  reviewedBy   User?     @relation("DeptReportReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+  returnNote   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments ApprovalComment[]
+
+  @@unique([departmentId, kind, periodStart])
+  @@index([status])
+  @@index([departmentId, kind])
+}
+
+// ---------------------------------------------------------------------------
+// Member register import
+// ---------------------------------------------------------------------------
+
+/// Rows the import could not take as-is are "set aside" for the Secretary to
+/// resolve one at a time, rather than failing the whole import.
+enum ImportRowStatus {
+  READY
+  DUPLICATE
+  MISSING_SEX
+  MISSING_NAME
+  IMPORTED
+  SKIPPED
+  MERGED
+}
+
+model MemberImport {
+  id       String @id @default(cuid())
+  fileName String
+
+  uploadedById String?
+  uploadedBy   User?   @relation("ImportUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  rows MemberImportRow[]
+}
+
+model MemberImportRow {
+  id        String       @id @default(cuid())
+  importId  String
+  import    MemberImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+  rowNumber Int
+
+  rawFirstName String?
+  rawLastName  String?
+  rawSex       String?
+  rawPhone     String?
+
+  status ImportRowStatus @default(READY)
+
+  duplicateOfMemberId String?
+  duplicateOfMember   Member? @relation("ImportRowDuplicateOf", fields: [duplicateOfMemberId], references: [id], onDelete: SetNull)
+
+  resolvedMemberId String?
+  resolvedMember   Member? @relation("ImportRowResolvedMember", fields: [resolvedMemberId], references: [id], onDelete: SetNull)
+
+  resolvedById String?
+  resolvedBy   User?     @relation("ImportRowResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt   DateTime?
+
+  @@unique([importId, rowNumber])
+  @@index([importId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Notifications and audit
+// ---------------------------------------------------------------------------
+
+enum NotificationChannel {
+  IN_APP
+  WHATSAPP
+}
+
+/// An in-app record of what the WhatsApp reminders already sent, so anyone can
+/// look back. linkPath is the deep link the message pointed at — every core
+/// screen has to work as a direct landing point.
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  channel  NotificationChannel @default(IN_APP)
+  title    String
+  body     String
+  linkPath String?
+
+  sentAt DateTime  @default(now())
+  readAt DateTime?
+
+  @@index([userId, sentAt])
+}
+
+/// Backs the "who recorded the change, when, and the reason" trail the offering
+/// and report screens display.
+model AuditEvent {
+  id      String  @id @default(cuid())
+  actorId String?
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  action     String
+  entityType String
+  entityId   String
+  summary    String
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+}

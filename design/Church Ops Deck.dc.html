@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#1a1a1a;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#211F1C}
+deck-stage > section{color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif}
+a{color:#2E5FA3}a:hover{color:#24497D}
+.dv-card{background:#FAF9F7;border:1px solid rgba(0,0,0,.12);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+</style>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1920" height="1080" hint-size="100%,100%">
+
+<section data-label="Title" data-speaker-notes="Design exploration for the Foursquare church operations platform: four core screens, mobile-first, built for confidence not excitement." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#FAF9F7;display:flex;flex-direction:column;justify-content:center;padding:0 160px;box-sizing:border-box">
+  <img src="assets/foursquare-crest.png" alt="Foursquare Gospel Church crest" style="width:130px;height:130px;object-fit:contain">
+  <div style="font-size:80px;font-weight:700;line-height:1.1;margin-top:44px;max-width:1200px">Church Operations Platform</div>
+  <div style="font-size:34px;color:#4A463F;margin-top:22px;max-width:1100px;line-height:1.45">Visual design exploration — offering entry, attendance, department reports, and the leadership dashboard.</div>
+  <div style="font-size:25px;color:#6B665E;margin-top:40px">Foursquare Gospel Church, Lagos · July 2026</div>
+</section>
+
+<section data-label="Design Language" data-speaker-notes="Calm neutral base, crest colors only as accents. IBM Plex Sans, tabular numerals, 48px+ touch targets. Status is always icon plus label." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F2EE;display:flex;gap:80px;padding:90px 100px;box-sizing:border-box">
+  <div style="width:520px;flex:none;display:flex;flex-direction:column;gap:26px">
+    <div style="font-size:24px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">Foundations</div>
+    <div style="font-size:56px;font-weight:700;line-height:1.15">Design Language</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">A calm warm-grey base carries every screen. The four crest colors appear only as small accents — status chips, the primary button, chart fills — never as surface colors.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">IBM Plex Sans with tabular numerals for money. Base body 17px on device, inputs 18px, touch targets ≥48px for users aged 50+.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Status is always icon + label, never color alone.</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;gap:36px;justify-content:center">
+    <div style="background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:36px 40px">
+      <div style="font-size:24px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6B665E;margin-bottom:22px">Crest accents on neutral base</div>
+      <div style="display:flex;gap:20px">
+        <div style="flex:1"><div style="height:76px;background:#A6342C;border-radius:8px"></div><div style="font-size:24px;color:#4A463F;margin-top:10px">Cross · red</div></div>
+        <div style="flex:1"><div style="height:76px;background:#2E5FA3;border-radius:8px"></div><div style="font-size:24px;color:#4A463F;margin-top:10px">Cup · blue</div></div>
+        <div style="flex:1"><div style="height:76px;background:#B08A24;border-radius:8px"></div><div style="font-size:24px;color:#4A463F;margin-top:10px">Dove · gold</div></div>
+        <div style="flex:1"><div style="height:76px;background:#5D4487;border-radius:8px"></div><div style="font-size:24px;color:#4A463F;margin-top:10px">Crown · purple</div></div>
+        <div style="flex:1"><div style="height:76px;background:#FAF9F7;border:1px solid #E4E1DB;border-radius:8px"></div><div style="font-size:24px;color:#4A463F;margin-top:10px">Base</div></div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:36px 40px">
+      <div style="font-size:24px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6B665E;margin-bottom:22px">Record states — icon + label, never color alone</div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;transform:scale(1.6);transform-origin:top left;width:600px">
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F1EFEA;border:1px solid #D8D4CC;color:#4A463F"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Draft</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#EDF2F9;border:1px solid #C7D6EB;color:#2E5FA3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Finalized</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F2EEF8;border:1px solid #D9CFEA;color:#5D4487"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>Approved</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F8F2E2;border:1px solid #E5D6AB;color:#7A5E17"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Revised</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F9EDEC;border:1px solid #E8C9C5;color:#A6342C"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>Returned</span>
+      </div>
+      <div style="height:30px"></div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Offering — Entry" data-speaker-notes="The treasurer never types a total. Denomination counts and income categories, all totals computed live. The cash versus category difference is explained as normal, never an error." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F2EE;display:flex;gap:70px;padding:80px 100px;box-sizing:border-box">
+  <div style="width:470px;flex:none;display:flex;flex-direction:column;gap:24px">
+    <div style="font-size:24px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">01 · Treasurer</div>
+    <div style="font-size:54px;font-weight:700;line-height:1.15">Offering Entry</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Count the cash, then split into categories — the same order as the paper form. Every total is computed; the treasurer never types one.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Transfers sit inside categories, so cash and category totals legitimately differ. A calm info strip explains this — it is never styled as an error.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Finalizing states its consequence in plain words and repeats the figures being locked.</div>
+  </div>
+  <div style="flex:1;display:flex;gap:56px;align-items:flex-start">
+    <div style="flex:none;width:312px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Draft — live totals</div>
+      <div style="width:390px;transform:scale(0.8);transform-origin:top left"><div class="dv-card" data-screen-label="Offering — Draft">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600;line-height:1.2">Sunday Offering</div><div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div></div>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F1EFEA;border:1px solid #D8D4CC;color:#4A463F"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Draft</span>
+        </div>
+        <div style="padding:18px 16px 8px">
+          <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6B665E">Denomination count</div>
+          <div style="font-size:13.5px;color:#5F5B54;margin-top:2px">Enter how many of each note. Totals compute as you go.</div>
+        </div>
+        <div style="background:#fff;border-top:1px solid #E4E1DB;border-bottom:1px solid #E4E1DB">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EEECE7">
+            <div style="width:74px;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦1,000</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></div>
+              <div style="width:52px;text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">23</div>
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></div>
+            </div>
+            <div style="flex:1;text-align:right;font-size:16px;color:#5F5B54;font-variant-numeric:tabular-nums">₦23,000</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EEECE7">
+            <div style="width:74px;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦500</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></div>
+              <div style="width:52px;text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">41</div>
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></div>
+            </div>
+            <div style="flex:1;text-align:right;font-size:16px;color:#5F5B54;font-variant-numeric:tabular-nums">₦20,500</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EEECE7">
+            <div style="width:74px;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦200</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></div>
+              <div style="width:52px;text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">74</div>
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></div>
+            </div>
+            <div style="flex:1;text-align:right;font-size:16px;color:#5F5B54;font-variant-numeric:tabular-nums">₦14,800</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #EEECE7">
+            <div style="width:74px;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦100</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></div>
+              <div style="width:52px;text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">27</div>
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></div>
+            </div>
+            <div style="flex:1;text-align:right;font-size:16px;color:#5F5B54;font-variant-numeric:tabular-nums">₦2,700</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 16px">
+            <div style="width:74px;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦50</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path></svg></div>
+              <div style="width:52px;text-align:center;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">14</div>
+              <div style="width:46px;height:46px;border:1.5px solid #C9C5BC;border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#211F1C" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></div>
+            </div>
+            <div style="flex:1;text-align:right;font-size:16px;color:#5F5B54;font-variant-numeric:tabular-nums">₦700</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#F5F3EF;border-top:1px solid #E4E1DB">
+            <div style="font-size:15px;font-weight:600;color:#4A463F">Cash counted</div>
+            <div style="font-size:19px;font-weight:700;font-variant-numeric:tabular-nums">₦61,700</div>
+          </div>
+        </div>
+        <div style="padding:18px 16px 8px">
+          <div style="font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6B665E">Income categories</div>
+          <div style="font-size:13.5px;color:#5F5B54;margin-top:2px">Transfers are recorded here too, so this total may differ from the cash count.</div>
+        </div>
+        <div style="background:#fff;border-top:1px solid #E4E1DB;border-bottom:1px solid #E4E1DB">
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #EEECE7">
+            <div style="flex:1;font-size:17px">Tithe</div>
+            <div style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦32,500</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #EEECE7">
+            <div style="flex:1;font-size:17px">Building Offering</div>
+            <div style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦21,000</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #EEECE7">
+            <div style="flex:1;font-size:17px">Thanksgiving</div>
+            <div style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦8,200</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #EEECE7">
+            <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px"><span style="font-size:17px">Tithe</span><span style="font-size:12px;font-weight:600;padding:3px 8px;border-radius:5px;background:#F8F2E2;border:1px solid #E5D6AB;color:#7A5E17">Transfer</span></div>
+            <div style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">₦12,000</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:14px 16px;color:#2E5FA3;font-size:16px;font-weight:600">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Add category
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#F5F3EF;border-top:1px solid #E4E1DB">
+            <div style="font-size:15px;font-weight:600;color:#4A463F">Categories total</div>
+            <div style="font-size:19px;font-weight:700;font-variant-numeric:tabular-nums">₦73,700</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin:14px 16px;padding:12px 14px;background:#fff;border:1px solid #E4E1DB;border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          <div style="font-size:14px;line-height:1.5;color:#4A463F">Categories include <strong>₦12,000 by transfer</strong>, so cash (₦61,700) and categories (₦73,700) are expected to differ. Nothing is wrong.</div>
+        </div>
+        <div style="background:#fff;border-top:1px solid #E4E1DB;padding:12px 16px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:13.5px;color:#5F5B54;font-variant-numeric:tabular-nums">Cash ₦61,700 · Categories ₦73,700</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#5F5B54"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>Saved 9:41</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:54px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:17px;font-weight:600">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Finalize offering
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:312px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Finalize — confirmation</div>
+      <div style="width:390px;transform:scale(0.8);transform-origin:top left"><div class="dv-card" data-screen-label="Offering — Finalize confirm" style="background:#8B8880">
+        <div style="height:270px;background:#FAF9F7;opacity:.4;padding:14px 16px">
+          <div style="font-size:18px;font-weight:600">Sunday Offering</div>
+          <div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div>
+          <div style="margin-top:16px;height:180px;background:#fff;border:1px solid #E4E1DB;border-radius:8px"></div>
+        </div>
+        <div style="background:#fff;border-radius:14px 14px 0 0;padding:22px 20px 20px;box-shadow:0 -2px 12px rgba(0,0,0,.12)">
+          <div style="font-size:20px;font-weight:700;line-height:1.25">Finalize this offering?</div>
+          <div style="font-size:15px;line-height:1.55;color:#4A463F;margin-top:8px">Counts and categories will be <strong>locked</strong>. Any later change — such as a late transfer — is recorded as a revision; the original figures are always kept.</div>
+          <div style="margin-top:14px;background:#F5F3EF;border:1px solid #E4E1DB;border-radius:8px;padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;font-size:15px;padding:3px 0"><span style="color:#5F5B54">Cash counted</span><strong style="font-variant-numeric:tabular-nums">₦61,700</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;padding:3px 0"><span style="color:#5F5B54">Categories total</span><strong style="font-variant-numeric:tabular-nums">₦73,700</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;padding:3px 0"><span style="color:#5F5B54">of which transfers</span><strong style="font-variant-numeric:tabular-nums">₦12,000</strong></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:54px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:17px;font-weight:600;margin-top:16px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Yes, finalize
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;height:52px;background:#fff;border:1.5px solid #C9C5BC;border-radius:8px;font-size:17px;font-weight:600;margin-top:10px">Keep editing</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Offering — Record States" data-speaker-notes="Finalized becomes a read-only receipt with the audit trail on screen. A late transfer creates a revision: original and revised totals side by side with who, when, and why. Empty state lands directly from a WhatsApp reminder." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F2EE;display:flex;gap:70px;padding:80px 100px;box-sizing:border-box">
+  <div style="width:400px;flex:none;display:flex;flex-direction:column;gap:24px">
+    <div style="font-size:24px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">01 · Treasurer</div>
+    <div style="font-size:54px;font-weight:700;line-height:1.15">Offering Record States</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Once finalized, the record becomes a receipt: inputs disappear, the audit trail stays on screen.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">A revision never overwrites. Original and revised totals sit as two labelled rows — no strikethrough, no red — with who, when, and why recorded verbatim.</div>
+  </div>
+  <div style="flex:1;display:flex;gap:44px;align-items:flex-start">
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Finalized + approved</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Offering — Finalized and approved">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600;line-height:1.2">Sunday Offering</div><div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div></div>
+        </div>
+        <div style="display:flex;gap:8px;padding:14px 16px 0;flex-wrap:wrap">
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#EDF2F9;border:1px solid #C7D6EB;color:#2E5FA3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Finalized</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F2EEF8;border:1px solid #D9CFEA;color:#5D4487"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>Approved</span>
+        </div>
+        <div style="margin:14px 16px;background:#fff;border:1px solid #E4E1DB;border-radius:8px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #EEECE7">
+            <div style="font-size:15px;color:#5F5B54">Total recorded</div>
+            <div style="font-size:24px;font-weight:700;font-variant-numeric:tabular-nums">₦73,700</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #EEECE7;font-size:15px"><span style="color:#5F5B54">Cash</span><strong style="font-variant-numeric:tabular-nums">₦61,700</strong></div>
+          <div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #EEECE7;font-size:15px"><span style="color:#5F5B54">Transfers</span><strong style="font-variant-numeric:tabular-nums">₦12,000</strong></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-size:15px;color:#2E5FA3;font-weight:600">View denomination count (5 notes)<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+        </div>
+        <div style="margin:0 16px 14px;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:14px 16px">
+          <div style="display:flex;gap:10px;padding:6px 0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2E5FA3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <div style="font-size:14.5px;line-height:1.5;color:#4A463F"><strong>Finalized</strong> by B.&nbsp;Adeyemi (Treasurer) · Sun 12 Jul, 1:05&nbsp;PM</div>
+          </div>
+          <div style="display:flex;gap:10px;padding:6px 0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5D4487" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+            <div style="font-size:14.5px;line-height:1.5;color:#4A463F"><strong>Approved</strong> by Rev. J.&nbsp;Okonkwo (Senior Pastor) · Sun 12 Jul, 6:40&nbsp;PM</div>
+          </div>
+        </div>
+        <div style="padding:0 16px 16px">
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:52px;background:#fff;border:1.5px solid #C9C5BC;border-radius:8px;font-size:16.5px;font-weight:600">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Record a revision
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Revised — audit trail</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Offering — Revised">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600;line-height:1.2">Sunday Offering</div><div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div></div>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F8F2E2;border:1px solid #E5D6AB;color:#7A5E17"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>Revised</span>
+        </div>
+        <div style="margin:14px 16px;background:#fff;border:1px solid #E4E1DB;border-radius:8px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid #EEECE7">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8A857C">Original</span><span style="font-size:13px;color:#8A857C">finalized 12 Jul</span></div>
+            <div style="font-size:18px;font-weight:600;color:#8A857C;font-variant-numeric:tabular-nums">₦73,700</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid #EEECE7;background:#FDFCF8">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#7A5E17">Revised</span><span style="font-size:13px;color:#5F5B54">current</span></div>
+            <div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums">₦85,700</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:11px 16px;font-size:14.5px"><span style="color:#5F5B54">Difference</span><strong style="font-variant-numeric:tabular-nums">+₦12,000 (transfer)</strong></div>
+        </div>
+        <div style="padding:0 16px 6px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6B665E">Revision history</div>
+        <div style="margin:0 16px 16px;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:14px 16px">
+          <div style="display:flex;gap:10px">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7A5E17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:2px"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>
+            <div style="font-size:14.5px;line-height:1.55;color:#211F1C">
+              <div style="font-weight:600">Revision 1 · +₦12,000 to Tithe (transfer)</div>
+              <div style="color:#5F5B54;margin-top:2px">Recorded by B.&nbsp;Adeyemi · Mon 13 Jul, 10:22&nbsp;AM</div>
+              <div style="margin-top:6px;color:#4A463F"><span style="font-weight:600">Reason:</span> Transfer from Bro. Eze arrived after Sunday finalization.</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin:0 16px 16px;padding:12px 14px;background:#fff;border:1px solid #E4E1DB;border-radius:8px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          <div style="font-size:14px;line-height:1.5;color:#4A463F">The original record is kept unchanged. Both figures appear on the weekly financial report.</div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Empty state</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Offering — Empty state">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          <div style="flex:1"><div style="font-size:18px;font-weight:600;line-height:1.2">Sunday Offering</div><div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:56px 32px 60px">
+          <div style="width:64px;height:64px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8A857C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01"></path><path d="M18 12h.01"></path></svg>
+          </div>
+          <div style="font-size:19px;font-weight:600;margin-top:18px">No offering recorded yet</div>
+          <div style="font-size:15px;line-height:1.55;color:#5F5B54;margin-top:6px;max-width:280px">Nothing has been entered for this service. Start with the denomination count.</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:54px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:17px;font-weight:600;margin-top:22px;padding:0 26px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Start offering entry
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Attendance Capture" data-speaker-notes="Used standing in a crowd. One search box, 72-pixel rows, mark button on the right edge in thumb territory. First-timer is two fields. Offline marks queue locally." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F2EE;display:flex;gap:70px;padding:80px 100px;box-sizing:border-box">
+  <div style="width:400px;flex:none;display:flex;flex-direction:column;gap:24px">
+    <div style="font-size:24px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">02 · Usher</div>
+    <div style="font-size:54px;font-weight:700;line-height:1.15">Attendance Capture</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Built for standing in a crowd: search-as-you-type, 72px rows, and the mark button on the right edge — thumb territory, one-handed.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Adding a first-timer is two fields and one tap that also marks them present.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">When the network drops, marks queue on the phone — the gold strip says so without alarming anyone.</div>
+  </div>
+  <div style="flex:1;display:flex;gap:44px;align-items:flex-start">
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Search &amp; mark</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Attendance — Capture">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600;line-height:1.2">Attendance</div><div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div></div>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#EDF2F9;border:1px solid #C7D6EB;color:#2E5FA3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>142 present</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#F8F2E2;border-bottom:1px solid #E5D6AB">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A5E17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          <div style="font-size:13.5px;font-weight:600;color:#7A5E17">Offline — 3 marks saved on this phone, will sync</div>
+        </div>
+        <div style="padding:12px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <div style="display:flex;align-items:center;gap:10px;height:56px;border:1.5px solid #2E5FA3;border-radius:10px;padding:0 14px;background:#fff">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <div style="font-size:18px;color:#211F1C">ade<span style="display:inline-block;width:2px;height:22px;background:#2E5FA3;vertical-align:-4px"></span></div>
+          </div>
+        </div>
+        <div style="background:#fff">
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #EEECE7;min-height:72px;box-sizing:border-box">
+            <div style="width:44px;height:44px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#6B665E;flex:none">AO</div>
+            <div style="flex:1;min-width:0"><div style="font-size:17.5px;font-weight:600">Adebayo Ogunlesi</div><div style="font-size:13.5px;color:#5F5B54">Member · last present 5 Jul</div></div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;width:104px;height:48px;border-radius:8px;background:#EDF2F9;border:1.5px solid #2E5FA3;color:#2E5FA3;font-size:15px;font-weight:700;flex:none"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Present</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #EEECE7;min-height:72px;box-sizing:border-box">
+            <div style="width:44px;height:44px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#6B665E;flex:none">AM</div>
+            <div style="flex:1;min-width:0"><div style="font-size:17.5px;font-weight:600">Adeola Martins</div><div style="font-size:13.5px;color:#5F5B54">Member · last present 28 Jun</div></div>
+            <div style="display:flex;align-items:center;justify-content:center;width:104px;height:48px;border-radius:8px;background:#fff;border:1.5px solid #C9C5BC;color:#211F1C;font-size:15px;font-weight:700;flex:none">Mark</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #EEECE7;min-height:72px;box-sizing:border-box">
+            <div style="width:44px;height:44px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#6B665E;flex:none">GA</div>
+            <div style="flex:1;min-width:0"><div style="font-size:17.5px;font-weight:600">Grace Adekunle</div><div style="font-size:13.5px;color:#5F5B54">First-timer · added today</div></div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;width:104px;height:48px;border-radius:8px;background:#EDF2F9;border:1.5px solid #2E5FA3;color:#2E5FA3;font-size:15px;font-weight:700;flex:none"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Present</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:72px;box-sizing:border-box">
+            <div style="width:44px;height:44px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:#6B665E;flex:none">SA</div>
+            <div style="flex:1;min-width:0"><div style="font-size:17.5px;font-weight:600">Samuel Adeniyi</div><div style="font-size:13.5px;color:#5F5B54">Member · last present 21 Jun</div></div>
+            <div style="display:flex;align-items:center;justify-content:center;width:104px;height:48px;border-radius:8px;background:#fff;border:1.5px solid #C9C5BC;color:#211F1C;font-size:15px;font-weight:700;flex:none">Mark</div>
+          </div>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid #E4E1DB;background:#FAF9F7">
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:52px;background:#fff;border:1.5px solid #C9C5BC;border-radius:8px;font-size:16.5px;font-weight:600">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M22 11h-6"></path></svg>Not found? Add first-timer
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Add first-timer</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Attendance — Add first-timer" style="background:#8B8880">
+        <div style="height:190px;background:#FAF9F7;opacity:.4;padding:14px 16px">
+          <div style="font-size:18px;font-weight:600">Attendance</div>
+          <div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div>
+          <div style="margin-top:14px;height:100px;background:#fff;border:1px solid #E4E1DB;border-radius:8px"></div>
+        </div>
+        <div style="background:#fff;border-radius:14px 14px 0 0;padding:22px 20px 20px;box-shadow:0 -2px 12px rgba(0,0,0,.12)">
+          <div style="font-size:20px;font-weight:700">Add first-timer</div>
+          <div style="font-size:14.5px;color:#5F5B54;margin-top:4px">Two fields only — details can be completed by the Secretary later.</div>
+          <div style="margin-top:16px">
+            <div style="font-size:14.5px;font-weight:600;margin-bottom:6px">Full name</div>
+            <div style="display:flex;align-items:center;height:54px;border:1.5px solid #C9C5BC;border-radius:8px;padding:0 14px;font-size:18px">Grace Adekunle</div>
+          </div>
+          <div style="margin-top:14px">
+            <div style="font-size:14.5px;font-weight:600;margin-bottom:6px">Phone number</div>
+            <div style="display:flex;align-items:center;height:54px;border:1.5px solid #2E5FA3;border-radius:8px;padding:0 14px;font-size:18px;color:#211F1C">0803 214 66<span style="display:inline-block;width:2px;height:22px;background:#2E5FA3;vertical-align:-4px"></span></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:54px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:17px;font-weight:600;margin-top:18px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M19 8v6"></path><path d="M22 11h-6"></path></svg>Add &amp; mark present
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;height:50px;font-size:16px;font-weight:600;color:#5F5B54;margin-top:6px">Cancel</div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Empty state</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Attendance — Empty state">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <div style="flex:1"><div style="font-size:18px;font-weight:600;line-height:1.2">Attendance</div><div style="font-size:13.5px;color:#5F5B54">2nd Service · Sun 12 Jul 2026</div></div>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F1EFEA;border:1px solid #D8D4CC;color:#4A463F">0 present</span>
+        </div>
+        <div style="padding:12px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <div style="display:flex;align-items:center;gap:10px;height:56px;border:1.5px solid #C9C5BC;border-radius:10px;padding:0 14px;background:#fff">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A857C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <div style="font-size:18px;color:#8A857C">Search a member's name…</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:52px 32px 58px">
+          <div style="width:64px;height:64px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8A857C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <div style="font-size:19px;font-weight:600;margin-top:18px">No one marked yet</div>
+          <div style="font-size:15px;line-height:1.55;color:#5F5B54;margin-top:6px;max-width:280px">Search a name above to mark the first person present for this service.</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Department Reports" data-speaker-notes="Three numbers and a notes box — under three minutes. The report list shows every state at a glance with a chip and a plain-English consequence line. Returned reports carry the Secretary's note and a fix action inline." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F2EE;display:flex;gap:70px;padding:80px 100px;box-sizing:border-box">
+  <div style="width:400px;flex:none;display:flex;flex-direction:column;gap:24px">
+    <div style="font-size:24px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">03 · Department Leader</div>
+    <div style="font-size:54px;font-weight:700;line-height:1.15">Department Reports</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">The weekly form is three numbers and a notes box — faster than the paper it replaces.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Every report's state reads from the list itself: chip + one line of plain English answering "what can I do now?"</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">A returned report carries the Secretary's note and a direct fix-and-resubmit action.</div>
+  </div>
+  <div style="flex:1;display:flex;gap:44px;align-items:flex-start">
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Weekly form</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Report — Weekly form">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5F5B54" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600;line-height:1.2">Weekly report</div><div style="font-size:13.5px;color:#5F5B54">Choir · Week of Sun 12 Jul</div></div>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F1EFEA;border:1px solid #D8D4CC;color:#4A463F"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Draft</span>
+        </div>
+        <div style="padding:18px 16px 4px">
+          <div style="margin-bottom:16px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:6px">Members present</div>
+            <div style="display:flex;align-items:center;height:56px;border:1.5px solid #C9C5BC;border-radius:8px;padding:0 14px;font-size:20px;font-weight:600;background:#fff;font-variant-numeric:tabular-nums">34</div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:6px">Department offering</div>
+            <div style="display:flex;align-items:center;height:56px;border:1.5px solid #C9C5BC;border-radius:8px;background:#fff;overflow:hidden">
+              <div style="display:flex;align-items:center;align-self:stretch;padding:0 14px;background:#F5F3EF;border-right:1px solid #E4E1DB;font-size:18px;font-weight:600;color:#5F5B54">₦</div>
+              <div style="padding:0 14px;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums">8,500</div>
+            </div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="font-size:15px;font-weight:600;margin-bottom:6px">First-time visitors</div>
+            <div style="display:flex;align-items:center;height:56px;border:1.5px solid #C9C5BC;border-radius:8px;padding:0 14px;font-size:20px;font-weight:600;background:#fff;font-variant-numeric:tabular-nums">2</div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><div style="font-size:15px;font-weight:600">Notes</div><div style="font-size:13px;color:#8A857C">optional</div></div>
+            <div style="min-height:96px;border:1.5px solid #C9C5BC;border-radius:8px;padding:12px 14px;font-size:17px;line-height:1.5;background:#fff;color:#211F1C">Two new sopranos joined. Need approval for new hymn books next month.</div>
+          </div>
+        </div>
+        <div style="background:#fff;border-top:1px solid #E4E1DB;padding:12px 16px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:13.5px;color:#5F5B54">You can edit after submitting, until review begins.</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#5F5B54;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>Saved</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:54px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:17px;font-weight:600">Submit report</div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Status at a glance</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Report — My reports list">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <div style="flex:1"><div style="font-size:18px;font-weight:600;line-height:1.2">My reports</div><div style="font-size:13.5px;color:#5F5B54">Choir department</div></div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 14px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:15px;font-weight:600;flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>New</div>
+        </div>
+        <div style="background:#fff">
+          <div style="padding:14px 16px;border-bottom:1px solid #EEECE7">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <div style="font-size:16.5px;font-weight:600">Week of 12 Jul</div>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F1EFEA;border:1px solid #D8D4CC;color:#4A463F;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Submitted</span>
+            </div>
+            <div style="font-size:13.5px;color:#5F5B54;margin-top:4px">Still editable — the Secretary hasn't started review.</div>
+          </div>
+          <div style="padding:14px 16px;border-bottom:1px solid #EEECE7;background:#FDFBF7">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <div style="font-size:16.5px;font-weight:600">Week of 21 Jun</div>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F9EDEC;border:1px solid #E8C9C5;color:#A6342C;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>Returned</span>
+            </div>
+            <div style="font-size:14px;line-height:1.5;color:#4A463F;margin-top:6px;padding:10px 12px;background:#fff;border:1px solid #E4E1DB;border-radius:8px"><span style="font-weight:600">Secretary:</span> "Offering figure is missing — please add and resubmit."</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;background:#fff;border:1.5px solid #A6342C;color:#A6342C;border-radius:8px;font-size:15.5px;font-weight:600;margin-top:10px">Fix &amp; resubmit</div>
+          </div>
+          <div style="padding:14px 16px;border-bottom:1px solid #EEECE7">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <div style="font-size:16.5px;font-weight:600">Week of 28 Jun</div>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#EDF2F9;border:1px solid #C7D6EB;color:#2E5FA3;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Under review</span>
+            </div>
+            <div style="font-size:13.5px;color:#5F5B54;margin-top:4px">Editing locked. Need a change? Ask the Secretary to return it.</div>
+          </div>
+          <div style="padding:14px 16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <div style="font-size:16.5px;font-weight:600">Week of 5 Jul</div>
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;background:#F2EEF8;border:1px solid #D9CFEA;color:#5D4487;flex:none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>Approved</span>
+            </div>
+            <div style="font-size:13.5px;color:#5F5B54;margin-top:4px">Approved by the Secretary · 7 Jul</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Empty state</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Report — Empty state">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <div style="flex:1"><div style="font-size:18px;font-weight:600;line-height:1.2">My reports</div><div style="font-size:13.5px;color:#5F5B54">Choir department</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:56px 32px 60px">
+          <div style="width:64px;height:64px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8A857C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><path d="M14 2v6h6"></path><path d="M16 13H8"></path><path d="M16 17H8"></path></svg>
+          </div>
+          <div style="font-size:19px;font-weight:600;margin-top:18px">No reports yet</div>
+          <div style="font-size:15px;line-height:1.55;color:#5F5B54;margin-top:6px;max-width:290px">Your first weekly report for Choir is due <strong>Sunday 13 July</strong>. It takes about 3 minutes.</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:54px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:17px;font-weight:600;margin-top:22px;padding:0 26px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Start weekly report
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Leadership Dashboard — Mobile" data-speaker-notes="One job above the fold: whatever awaits the Pastor's approval, complete enough to act on — figures, revision flag, treasurer's narrative. No edit affordances anywhere." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F2EE;display:flex;gap:70px;padding:80px 100px;box-sizing:border-box">
+  <div style="width:400px;flex:none;display:flex;flex-direction:column;gap:24px">
+    <div style="font-size:24px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">04 · Senior Pastor</div>
+    <div style="font-size:54px;font-weight:700;line-height:1.15">Leadership Dashboard</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">A reading surface with one job above the fold: anything awaiting approval — with the figures, the revision flag, and the Treasurer's narrative, enough to act from this screen.</div>
+    <div style="font-size:26px;line-height:1.6;color:#4A463F">Approval confirms its consequence and repeats both totals when a revision exists. No edit affordances exist anywhere.</div>
+  </div>
+  <div style="flex:1;display:flex;gap:44px;align-items:flex-start">
+    <div style="flex:none;width:265px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Pending approval</div>
+      <div style="width:390px;transform:scale(0.68);transform-origin:top left"><div class="dv-card" data-screen-label="Dashboard — Pastor mobile">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <img src="assets/foursquare-crest.png" alt="Foursquare Gospel Church crest" style="width:26px;height:26px;object-fit:contain;flex:none">
+          <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600;line-height:1.2">Overview</div><div style="font-size:13.5px;color:#5F5B54">Good evening, Pastor · Sun 12 Jul</div></div>
+        </div>
+        <div style="margin:14px 16px;background:#fff;border:1.5px solid #C7D6EB;border-radius:10px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:#EDF2F9;border-bottom:1px solid #C7D6EB">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2E5FA3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+            <div style="font-size:14px;font-weight:700;color:#2E5FA3">Needs your approval · 1 pending</div>
+          </div>
+          <div style="padding:14px 16px">
+            <div style="font-size:17.5px;font-weight:600">Weekly financial report — Sun 12 Jul</div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:15px"><span style="color:#5F5B54">Total (revised)</span><strong style="font-size:18px;font-variant-numeric:tabular-nums">₦85,700</strong></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:14.5px"><span style="color:#5F5B54">Original total</span><span style="color:#8A857C;font-variant-numeric:tabular-nums">₦73,700</span></div>
+            <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:14.5px"><span style="color:#5F5B54">Cash / transfers</span><span style="font-variant-numeric:tabular-nums">₦61,700 / ₦24,000</span></div>
+            <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+              <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:600;background:#F8F2E2;border:1px solid #E5D6AB;color:#7A5E17"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>1 revision</span>
+              <span style="font-size:13px;color:#5F5B54">late transfer, Mon 13 Jul</span>
+            </div>
+            <div style="margin-top:12px;padding:12px 14px;background:#F5F3EF;border:1px solid #E4E1DB;border-radius:8px;font-size:14.5px;line-height:1.55;color:#4A463F"><span style="font-weight:600">Treasurer's note:</span> "Building fund giving rose again this week. One transfer arrived Monday and is recorded as a revision. Submitted for your approval."</div>
+            <div style="display:flex;gap:10px;margin-top:14px">
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;height:50px;background:#fff;border:1.5px solid #C9C5BC;border-radius:8px;font-size:15.5px;font-weight:600">View full report</div>
+              <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:50px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:15.5px;font-weight:600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Approve</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:4px 16px 6px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6B665E">This week</div>
+        <div style="display:flex;gap:10px;margin:0 16px">
+          <div style="flex:1;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;color:#5F5B54">Attendance</div>
+            <div style="font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums">412</div>
+            <div style="font-size:12.5px;color:#4A463F;margin-top:2px">↑ 14 vs last Sun</div>
+          </div>
+          <div style="flex:1;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;color:#5F5B54">First-timers</div>
+            <div style="font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums">9</div>
+            <div style="font-size:12.5px;color:#4A463F;margin-top:2px">↑ 3 vs last Sun</div>
+          </div>
+        </div>
+        <div style="margin:10px 16px;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:14px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-size:14.5px;font-weight:600">Cash vs transfer</div>
+            <div style="font-size:13px;color:#5F5B54;font-variant-numeric:tabular-nums">₦85,700 total</div>
+          </div>
+          <div style="display:flex;height:20px;border-radius:5px;overflow:hidden;margin-top:10px">
+            <div style="flex:72;background:#2E5FA3"></div>
+            <div style="flex:28;background:#B08A24"></div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:8px;font-size:13px;color:#4A463F">
+            <span><span style="display:inline-block;width:10px;height:10px;background:#2E5FA3;border-radius:2px;margin-right:5px"></span>Cash ₦61,700 (72%)</span>
+            <span><span style="display:inline-block;width:10px;height:10px;background:#B08A24;border-radius:2px;margin-right:5px"></span>Transfer ₦24,000 (28%)</span>
+          </div>
+        </div>
+        <div style="margin:0 16px 16px;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:14px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-size:14.5px;font-weight:600">Offering, last 6 Sundays</div>
+            <div style="font-size:13px;color:#5F5B54">₦ thousands</div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;height:74px;margin-top:12px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:48%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">7 Jun</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:60%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">14</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:52%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">21</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:66%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">28</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:58%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">5 Jul</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:76%;background:#2E5FA3;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#4A463F;font-weight:600">12</div></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Approve — confirmation</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Dashboard — Approve confirm" style="background:#8B8880">
+        <div style="height:240px;background:#FAF9F7;opacity:.4;padding:14px 16px">
+          <div style="font-size:18px;font-weight:600">Overview</div>
+          <div style="font-size:13.5px;color:#5F5B54">Good evening, Pastor · Sun 12 Jul</div>
+          <div style="margin-top:14px;height:150px;background:#fff;border:1px solid #E4E1DB;border-radius:10px"></div>
+        </div>
+        <div style="background:#fff;border-radius:14px 14px 0 0;padding:22px 20px 20px;box-shadow:0 -2px 12px rgba(0,0,0,.12)">
+          <div style="font-size:20px;font-weight:700;line-height:1.25">Approve this financial report?</div>
+          <div style="font-size:15px;line-height:1.55;color:#4A463F;margin-top:8px">Your approval is <strong>final</strong> and will be recorded with your name and the time. The Treasurer and Secretary will be notified.</div>
+          <div style="margin-top:14px;background:#F5F3EF;border:1px solid #E4E1DB;border-radius:8px;padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;font-size:15px;padding:3px 0"><span style="color:#5F5B54">Report</span><strong>Week of Sun 12 Jul</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;padding:3px 0"><span style="color:#5F5B54">Total (revised)</span><strong style="font-variant-numeric:tabular-nums">₦85,700</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;padding:3px 0"><span style="color:#5F5B54">Original</span><span style="color:#8A857C;font-variant-numeric:tabular-nums">₦73,700</span></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:54px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:17px;font-weight:600;margin-top:16px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Approve report
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;height:52px;background:#fff;border:1.5px solid #C9C5BC;border-radius:8px;font-size:17px;font-weight:600;margin-top:10px">Not yet</div>
+        </div>
+      </div></div>
+    </div>
+    <div style="flex:none;width:293px">
+      <div style="font-size:25px;font-weight:600;margin-bottom:16px">Nothing pending</div>
+      <div style="width:390px;transform:scale(0.75);transform-origin:top left"><div class="dv-card" data-screen-label="Dashboard — No pending approvals">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <img src="assets/foursquare-crest.png" alt="Foursquare Gospel Church crest" style="width:26px;height:26px;object-fit:contain;flex:none">
+          <div style="flex:1"><div style="font-size:18px;font-weight:600;line-height:1.2">Overview</div><div style="font-size:13.5px;color:#5F5B54">Good evening, Pastor · Tue 14 Jul</div></div>
+        </div>
+        <div style="margin:14px 16px;background:#fff;border:1px solid #E4E1DB;border-radius:10px;display:flex;flex-direction:column;align-items:center;text-align:center;padding:32px 24px">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5D4487" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+          <div style="font-size:18px;font-weight:600;margin-top:12px">No pending approvals</div>
+          <div style="font-size:14.5px;line-height:1.55;color:#5F5B54;margin-top:5px;max-width:270px">You're up to date. The next weekly financial report is expected <strong>Sunday 19 July</strong>.</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:15.5px;font-weight:600;color:#2E5FA3;margin-top:14px">View past reports<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></div>
+        </div>
+        <div style="padding:0 16px 6px;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6B665E">This week</div>
+        <div style="display:flex;gap:10px;margin:0 16px 16px">
+          <div style="flex:1;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;color:#5F5B54">Attendance</div>
+            <div style="font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums">412</div>
+          </div>
+          <div style="flex:1;background:#fff;border:1px solid #E4E1DB;border-radius:8px;padding:12px 14px">
+            <div style="font-size:13px;color:#5F5B54">Offering</div>
+            <div style="font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums">₦85,700</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section data-label="Leadership Dashboard — Desktop" data-speaker-notes="Same content, two columns. Approval and category table on the left, charts on the right. Desktop is a wider view, not a different product." style="color:#211F1C;font-family:'IBM Plex Sans',system-ui,sans-serif;background:#F4F2EE;display:flex;flex-direction:column;gap:36px;padding:70px 100px;box-sizing:border-box">
+  <div style="display:flex;align-items:baseline;gap:28px">
+    <div style="font-size:24px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">04 · Senior Pastor</div>
+    <div style="font-size:46px;font-weight:700;line-height:1.15">Dashboard, Desktop-Enhanced</div>
+    <div style="font-size:25px;color:#4A463F">Same content as the phone, two columns — a wider view, not a different product.</div>
+  </div>
+  <div style="width:1144px;align-self:center">
+    <div style="width:1040px;transform:scale(1.1);transform-origin:top left"><div class="dv-card" data-screen-label="Dashboard — Desktop">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 24px;background:#fff;border-bottom:1px solid #E4E1DB">
+          <img src="assets/foursquare-crest.png" alt="Foursquare Gospel Church crest" style="width:30px;height:30px;object-fit:contain;flex:none">
+          <div style="font-size:16px;font-weight:700">Foursquare Gospel Church <span style="font-weight:400;color:#5F5B54">· Operations</span></div>
+          <div style="flex:1"></div>
+          <div style="font-size:14px;color:#5F5B54">Rev. J. Okonkwo · Senior Pastor</div>
+          <div style="width:38px;height:38px;border-radius:50%;background:#F1EFEA;border:1px solid #E4E1DB;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#6B665E">JO</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px;padding:20px 24px">
+          <div>
+            <div style="background:#fff;border:1.5px solid #C7D6EB;border-radius:10px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:8px;padding:12px 18px;background:#EDF2F9;border-bottom:1px solid #C7D6EB">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2E5FA3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+                <div style="font-size:14px;font-weight:700;color:#2E5FA3">Needs your approval · 1 pending</div>
+              </div>
+              <div style="padding:16px 18px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+                  <div style="font-size:17px;font-weight:600">Weekly financial report — Sun 12 Jul</div>
+                  <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:600;background:#F8F2E2;border:1px solid #E5D6AB;color:#7A5E17;flex:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M12 7v5l4 2"></path></svg>1 revision</span>
+                </div>
+                <div style="display:flex;gap:26px;margin-top:12px">
+                  <div><div style="font-size:13px;color:#5F5B54">Total (revised)</div><div style="font-size:24px;font-weight:700;font-variant-numeric:tabular-nums">₦85,700</div></div>
+                  <div><div style="font-size:13px;color:#5F5B54">Original</div><div style="font-size:24px;font-weight:600;color:#8A857C;font-variant-numeric:tabular-nums">₦73,700</div></div>
+                  <div><div style="font-size:13px;color:#5F5B54">Cash</div><div style="font-size:24px;font-weight:600;font-variant-numeric:tabular-nums">₦61,700</div></div>
+                  <div><div style="font-size:13px;color:#5F5B54">Transfers</div><div style="font-size:24px;font-weight:600;font-variant-numeric:tabular-nums">₦24,000</div></div>
+                </div>
+                <div style="margin-top:14px;padding:12px 14px;background:#F5F3EF;border:1px solid #E4E1DB;border-radius:8px;font-size:14px;line-height:1.55;color:#4A463F"><span style="font-weight:600">Treasurer's note:</span> "Building fund giving rose again this week. One transfer arrived Monday and is recorded as a revision. Submitted for your approval."</div>
+                <div style="display:flex;gap:10px;margin-top:14px;max-width:420px">
+                  <div style="flex:1;display:flex;align-items:center;justify-content:center;height:46px;background:#fff;border:1.5px solid #C9C5BC;border-radius:8px;font-size:14.5px;font-weight:600">View full report</div>
+                  <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:46px;background:#2E5FA3;color:#fff;border-radius:8px;font-size:14.5px;font-weight:600"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>Approve</div>
+                </div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4E1DB;border-radius:10px;margin-top:16px;overflow:hidden">
+              <div style="padding:14px 18px;border-bottom:1px solid #EEECE7;font-size:14.5px;font-weight:600">Totals by category — Sun 12 Jul</div>
+              <div style="display:flex;justify-content:space-between;padding:11px 18px;border-bottom:1px solid #F1EFEA;font-size:15px"><span>Tithe <span style="font-size:12px;font-weight:600;padding:2px 7px;border-radius:4px;background:#F8F2E2;border:1px solid #E5D6AB;color:#7A5E17;margin-left:6px">incl. ₦24,000 transfer</span></span><strong style="font-variant-numeric:tabular-nums">₦56,500</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:11px 18px;border-bottom:1px solid #F1EFEA;font-size:15px"><span>Building Offering</span><strong style="font-variant-numeric:tabular-nums">₦21,000</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:11px 18px;font-size:15px"><span>Thanksgiving</span><strong style="font-variant-numeric:tabular-nums">₦8,200</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:12px 18px;background:#F5F3EF;border-top:1px solid #E4E1DB;font-size:15px"><strong>Total</strong><strong style="font-variant-numeric:tabular-nums">₦85,700</strong></div>
+            </div>
+          </div>
+          <div>
+            <div style="background:#fff;border:1px solid #E4E1DB;border-radius:10px;padding:16px 18px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:14.5px;font-weight:600">Cash vs transfer</div><div style="font-size:13px;color:#5F5B54;font-variant-numeric:tabular-nums">₦85,700</div></div>
+              <div style="display:flex;height:20px;border-radius:5px;overflow:hidden;margin-top:10px">
+                <div style="flex:72;background:#2E5FA3"></div>
+                <div style="flex:28;background:#B08A24"></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:13px;color:#4A463F">
+                <span><span style="display:inline-block;width:10px;height:10px;background:#2E5FA3;border-radius:2px;margin-right:5px"></span>Cash ₦61,700 (72%)</span>
+                <span><span style="display:inline-block;width:10px;height:10px;background:#B08A24;border-radius:2px;margin-right:5px"></span>Transfer ₦24,000 (28%)</span>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4E1DB;border-radius:10px;padding:16px 18px;margin-top:16px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:14.5px;font-weight:600">Offering, last 6 Sundays</div><div style="font-size:13px;color:#5F5B54">₦ thousands</div></div>
+              <div style="display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:12px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:48%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">7 Jun</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:60%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">14</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:52%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">21</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:66%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">28</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:58%;background:#C7D6EB;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">5 Jul</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:76%;background:#2E5FA3;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#4A463F;font-weight:600">12</div></div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #E4E1DB;border-radius:10px;padding:16px 18px;margin-top:16px">
+              <div style="font-size:14.5px;font-weight:600">Attendance, last 6 Sundays</div>
+              <div style="display:flex;align-items:flex-end;gap:8px;height:90px;margin-top:12px">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:70%;background:#E1DCD3;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">368</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:76%;background:#E1DCD3;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">381</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:72%;background:#E1DCD3;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">371</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:80%;background:#E1DCD3;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">395</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:82%;background:#E1DCD3;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#8A857C">398</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;align-self:stretch;justify-content:flex-end"><div style="width:100%;height:88%;background:#5D4487;border-radius:3px 3px 0 0"></div><div style="font-size:11px;color:#4A463F;font-weight:600">412</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+  </div>
+</section>
+
+</x-import>
+</x-dc>
+</body>
+</html>
