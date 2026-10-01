@@ -9,6 +9,13 @@ Two services, deliberately not folded together: an Express API over PostgreSQL,
 and a React PWA that talks to it over HTTP. Mobile-first, with desktop
 enhancement at 1024px and above.
 
+One application serves every church, from one database, with a church column on
+every church-owned table. A database or a schema per church was rejected: for a
+handful of churches it multiplies migration and connection work without removing
+the thing that actually protects data, which is a correctly scoped query. The
+cost of this choice is that scoping is never optional — one unscoped `findMany`
+is a cross-church leak, which is why the isolation tests are not negotiable.
+
 ```
 server/
   prisma/schema.prisma   every model, relation and constraint
@@ -32,12 +39,38 @@ controller**. A route file holds no logic.
 ## Where authority lives
 
 The backend owns every total. The frontend may preview a figure while someone
-is typing, but the server recomputes it on save and never accepts a total, a
-role or a user id from the client. Role comes from the database record reached
-through the verified token — never from a body, a query or a header.
+is typing — counting is instant and local, and labelled provisional until
+saved — but the server recomputes it on save and never accepts a total, a role, a
+user id or a church from the client. Role and church both come from the database
+record reached through the session, never from a body, a query or a header.
 
 Hiding a button is not authorization. Every restricted action is enforced on the
 route that performs it.
+
+## Tenant isolation
+
+One rule: **the caller's church comes from the session, on the server, on every
+request.** No endpoint takes a church id as a parameter, because then it would be
+something a client could change.
+
+In practice that is one middleware resolving the session's church and attaching
+it, plus discipline in the controllers: every read filters on it, every write
+stamps it, and before an update or delete the target row's church is confirmed.
+Rows referenced together in one write must belong to the same church — an
+offering's service, a report's department, a comment's subject.
+
+A row in another church returns exactly what a row that does not exist returns.
+Not a 403 against a 404, not a different message: the same response, because any
+difference confirms the record is real.
+
+The same scoping applies to the things that are easy to forget — exports, stored
+files, notification recipients, background jobs, cache keys and the offline
+attendance queue. Queued work carries its church, account and service, and is
+re-authorized on reconnect rather than trusted.
+
+**This is not implemented yet.** The schema and the written routes predate it.
+Build Spec section 16 is the specification; the build plan puts the church model,
+the scoping middleware and a two-church test suite ahead of any further feature.
 
 ## Why PostgreSQL and not MongoDB
 
@@ -60,8 +93,11 @@ need denormalisation or application-side joins.
 
 The honest counter-case: MongoDB shines when records are self-contained
 documents, when the schema shifts shape often, and when horizontal scale matters
-more than relational integrity. None of those apply to a single church's
-interconnected, integrity-critical data at this size.
+more than relational integrity. None of those apply here. The data is
+interconnected and integrity-critical, the shape is settled, and the scale is
+measured in churches rather than in millions of documents — and isolation between
+churches is a constraint a relational schema can enforce rather than something
+left to application code to remember.
 
 ## Why a PWA and not native
 
@@ -79,7 +115,9 @@ needs a connection.
 No new layer without a demonstrated problem in existing code. No repositories,
 no DTO classes, no base controllers, no generic CRUD factories, no dependency
 injection, no interfaces with a single implementation. "It might scale better"
-is not a demonstrated problem.
+is not a demonstrated problem, and **neither is multi-tenancy** — serving several
+churches is a reason to scope queries, not a licence for a tenant-context
+abstraction or a query-builder wrapper.
 
 A helper used by one controller lives at the bottom of that controller. It moves
 to `lib/` when a second caller actually exists, not in anticipation of one.

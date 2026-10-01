@@ -1,6 +1,41 @@
 # Domain
 
-What the church actually does on a Sunday, and the rules the code is held to.
+What a church actually does on a Sunday, and the rules the code is held to.
+
+## Churches
+
+The platform serves several independent churches from one application and one
+database. Foursquare TBC in Lagos is the first; it is not the parent of the
+others and has no visibility into them.
+
+A `Church` owns its name, logo, accent colours, giving categories, bucket rates
+and expense labels. Those are settings, not constants in the code, and one
+church's settings are never a fallback for another — including in PDFs and
+notifications. Two churches independently using the category name "Tithe" is
+coincidence, not a shared record.
+
+Every row that holds church data belongs to exactly one church. The rules that
+follow from that:
+
+- Search, autocomplete, duplicate checks, import matching, reports, counters,
+  history and notifications cover only the signed-in user's church.
+- **A record in another church is indistinguishable from one that does not
+  exist** — same response, same wording, no owner, no hint. A refusal that
+  differs from a "not found" confirms that someone else's record is there.
+- There is no shared member directory, and the app never says that a person or
+  an email belongs to another church. Outside your church, a collision is not a
+  collision.
+- Nothing in the interface reveals that other churches exist: no church search,
+  dropdown, count or list.
+- An export carries one church's data and one church's branding.
+
+Roles are granted per church, and a role switcher only lists roles already held
+in the current church. Platform administration is a separate concern from
+church-facing permissions: operating the platform does not imply permission to
+read a church's members or finances.
+
+Creating churches, assigning the first administrator and managing church status
+are deliberately not built yet. Provisioning is manual.
 
 ## The process being replaced
 
@@ -26,8 +61,14 @@ people who already have one.
 
 One person can hold two roles — Treasurer and Department Leader is a real
 combination — and switches between them from the menu. A user switches only
-among roles already granted to their account, enforcement is on the server, and
-every state change records which role the actor was using at the time.
+among roles already granted to their account **in the church they are signed in
+to**, enforcement is on the server, and every state change records which role the
+actor was using at the time. Switching never adds permission, and there is no
+church switcher.
+
+Whether one person can hold accounts at two churches, and how signing in
+resolves that, is an open decision. Today an email address is unique across the
+whole platform, which would forbid it.
 
 ## Entities
 
@@ -49,6 +90,12 @@ both hang off it. `Department`, `User`, `DeptReport`.
 
 **Supporting.** `MemberImport` and `ImportRow` stage the launch spreadsheet.
 `ApprovalComment`, `Notification`, `AuditLog`.
+
+**Church.** Name, slug, status, logo, accent set, enabled modules, timezone.
+Every entity above carries its church, required, and the value is set on the
+server from the session — never accepted from a request. Names that read as
+globally unique are unique per church instead: a department, a category, a
+service, a week.
 
 ## Rules the code is held to
 
@@ -111,6 +158,12 @@ is only possible as a revision.
 
 ## Out of scope
 
-Multi-church or multi-branch support, member self-service, online giving or
+Branches or sub-churches beneath a church, member self-service, online giving or
 payment processing, payroll and budgets, accounting integrations, check-in
 kiosks, QR codes, event ticketing, native apps, CSV or Excel export.
+
+Deferred rather than ruled out: the screens for creating and provisioning a
+church, assigning its first administrator, managing church status, configuring
+which modules it has, church settings, invitations, church switching, and
+platform operator tooling. Deferring the screens does not defer the isolation
+work underneath them.
