@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../lib/errors";
-import { isProduction } from "../env";
+import { isProduction } from "../lib/env";
 
 export function notFoundHandler(req: Request, res: Response) {
   res.status(404).json({

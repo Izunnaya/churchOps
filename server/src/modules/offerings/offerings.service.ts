@@ -1,4 +1,4 @@
-import { prisma } from "../../db";
+import { prisma } from "../../lib/prisma";
 import { OfferingStatus } from "../../generated/prisma/enums";
 import { badRequest, conflict, notFound } from "../../lib/errors";
 import { money, round, serialize, sum } from "../../lib/money";

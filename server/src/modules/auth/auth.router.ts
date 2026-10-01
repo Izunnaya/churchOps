@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { z } from "zod";
-import { prisma } from "../../db";
+import { prisma } from "../../lib/prisma";
 import { Role, UserStatus } from "../../generated/prisma/enums";
 import {
   generateRefreshToken,

@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
-import { env } from "../env";
+import { env } from "./env";
 import { Role } from "../generated/prisma/enums";
 
 const SALT_ROUNDS = 12;
