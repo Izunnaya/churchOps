@@ -1,4 +1,4 @@
-# Foursquare TBC Church Operations Platform
+# Church Operations Platform
 
 An operations platform for independent churches: which categories the offering
 came in under, what each one counted to note by note, what was set aside to the
@@ -18,8 +18,11 @@ The domain model and the design are finished. The server now starts and answers
 a health check, which is the whole of it: no database has ever been created,
 there are no migrations, and none of the written routes are mounted yet. The
 Prisma schema covers every entity, and route, middleware and domain files exist
-for authentication and offerings, but `src/app.ts`, `src/db.ts` and `src/env.ts`
-are still empty. The frontend has no `package.json`.
+for authentication and offerings. The frontend has no `package.json`.
+
+`npx tsc --noEmit` reports no errors, which is newer than it sounds — the project
+did not compile at all until the empty `env` and `db` placeholders at the `src`
+root were replaced by the modules in `lib/` that everything had been importing.
 
 | Built                                                                      | Not yet built                                                               |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
@@ -55,10 +58,12 @@ curl localhost:4000/health   # {"status":"ok"}
 | `npx prisma generate` | Regenerates the client into `src/generated/prisma` |
 
 That is the whole script list. There is no `build`, no `test`, no `lint` and no
-`format` yet, and no `.env.example`. Nothing needs a `DATABASE_URL` so far —
-`PORT` is the only variable read, and it defaults to 4000. Adding the test
-harness comes before any feature work, so that it exists before there is
-anything to test.
+`format` yet, and no `.env.example`. `PORT` is the only variable needed to start
+the server, and it defaults to 4000 — `JWT_SECRET`, `ACCESS_TOKEN_TTL` and
+`REFRESH_TOKEN_TTL_DAYS` are read lazily and matter only once tokens are signed,
+and nothing yet opens a database connection, so `DATABASE_URL` is not required to
+run what exists. Adding the test harness comes before any feature work, so that it
+exists before there is anything to test.
 
 `frontend/` holds a stray `next-env.d.ts` and a build directory from an
 abandoned start. Treat it as empty.
@@ -70,8 +75,9 @@ abandoned start. Treat it as empty.
 │   ├── prisma/
 │   │   └── schema.prisma    Every model, relation and constraint
 │   └── src/
+│       ├── index.ts         App setup and listen, nothing else
 │       ├── domain/          Offering rules and their checks
-│       ├── lib/             Money, errors, HTTP helpers, auth helpers
+│       ├── lib/             Env, the Prisma client, money, errors, HTTP and auth helpers
 │       ├── middleware/      authenticate, authorize, validate, error handling
 │       └── modules/         Route files for auth and offerings
 ├── frontend/            The React PWA. Not scaffolded yet.
@@ -90,13 +96,17 @@ abandoned start. Treat it as empty.
 | [docs/architecture.md](docs/architecture.md)       | How the packages fit, where authority lives, why PostgreSQL over MongoDB  |
 | [design/DESIGN-SPEC.md](design/DESIGN-SPEC.md)     | Palette, type scale, status chips, metrics, and all 88 screens            |
 
-The project handbook, the build spec, the project brief, the coding conventions,
-the build plan and the conflict resolutions all live outside this repository,
-because they quote the church's own figures and internal decisions. Where those
-documents disagree, the build spec wins, then the brief, then the handbook. The
-`Q`-numbers referred to in commits are questions in the conventions document's
-open-questions section; seven of them are still unanswered and each one blocks
-named work.
+The designer brief, the build spec, the project brief, the project handbook, the
+coding conventions, the build plan and the conflict resolutions all live outside
+this repository, because they quote the church's own figures and internal
+decisions. Where those documents disagree the designer brief wins, then the build
+spec, then the project brief, then the handbook.
+
+Design and domain decisions are tracked in that brief as a numbered register,
+`DEC-01` to `DEC-12`. All twelve are currently open, and each one blocks named
+work — which is why some things here are specified in detail and deliberately not
+built. An older `Q`-numbered register in the conventions document is kept as
+history where the two overlap.
 
 Four of the five design frame files were truncated in transfer at 256 KiB, and
 `design/DESIGN-SPEC.md` records which file recovers each missing section.
@@ -104,8 +114,8 @@ Four of the five design frame files were truncated in transfer at 256 KiB, and
 ## Deployment
 
 Not deployed. The hosting decision has not been made, and it is the last task in
-the build plan rather than an early one — there is no point deploying a server
-that does not start.
+the build plan rather than an early one — what runs today is a health check with
+no database behind it, which is not yet worth putting anywhere.
 
 ## Stack
 
