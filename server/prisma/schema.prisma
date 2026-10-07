@@ -537,6 +537,14 @@ model OfferingRevision {
 
   reason String
 
+  /// Supplied by the client and unique per offering, so a double tap or a retry
+  /// on a dropped connection resolves to the revision already written instead
+  /// of recording the same late transfer twice. Build Spec section 16.4 requires
+  /// one on every finalize, submit, approve and revision endpoint; finalize and
+  /// approve are incidentally covered by their own status guards, a revision is
+  /// not, because a revised offering stays revisable.
+  idempotencyKey String
+
   categoryName String?
   deltaAmount  Decimal @db.Decimal(14, 2)
 
@@ -548,6 +556,7 @@ model OfferingRevision {
   recordedBy   User?    @relation("RevisionRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
   recordedAt   DateTime @default(now())
 
+  @@unique([offeringId, idempotencyKey])
   @@index([offeringId])
   @@index([churchId])
 }

@@ -22,9 +22,14 @@ const ratePercent = z
   .regex(/^\d{1,3}(\.\d{1,2})?$/, "Enter a percentage like 10 or 12.5")
   .refine((v) => Number(v) >= 0 && Number(v) <= 100, "Use a percentage between 0 and 100");
 
+/// Not the Secretary. This list carries bucketRatePercent, and Build Spec
+/// section 2 grants bucket rates to the Treasurer (edit) and the Senior Pastor
+/// (view) only; her finance access is read-only "where permitted", and the rate
+/// table is not one of those places. If a screen of hers turns out to need the
+/// category names, that is a narrower endpoint returning names, not this one.
 incomeCategoriesRouter.get(
   "/",
-  authorize(Role.TREASURER, Role.SECRETARY, Role.PASTOR),
+  authorize(Role.TREASURER, Role.PASTOR),
   async (req, res) => {
     const categories = await prisma.incomeCategory.findMany({
       where: { churchId: churchOf(req) },

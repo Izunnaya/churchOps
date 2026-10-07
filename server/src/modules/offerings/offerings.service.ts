@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import { Prisma } from "../../generated/prisma/client";
 import { OfferingStatus } from "../../generated/prisma/enums";
 import { badRequest, conflict, notFound } from "../../lib/errors";
 import { money, round, serialize, sum } from "../../lib/money";
@@ -255,13 +256,26 @@ export async function recordRevision(
   churchId: string,
   id: string,
   userId: string,
-  input: { reason: string; categoryName?: string | null; deltaAmount: string },
+  input: {
+    reason: string;
+    categoryName?: string | null;
+    deltaAmount: string;
+    idempotencyKey: string;
+  },
 ) {
   const offering = await findOffering(churchId, id);
 
   if (offering.status === OfferingStatus.DRAFT) {
     throw conflict("This offering is still a draft — edit it directly instead.");
   }
+
+  // A retry of a revision already recorded resolves to that revision rather
+  // than adding a second one. Checked here for the common case; the unique
+  // constraint below is what holds when two requests race.
+  const alreadyRecorded = await prisma.offeringRevision.findFirst({
+    where: { offeringId: id, idempotencyKey: input.idempotencyKey },
+  });
+  if (alreadyRecorded) return findOffering(churchId, id);
 
   const delta = round(money(input.deltaAmount));
   if (delta.isZero()) throw badRequest("A revision needs a non-zero amount.");
@@ -273,39 +287,50 @@ export async function recordRevision(
   const originalTotal = round(totals.categoriesTotal.add(priorDelta));
   const revisedTotal = round(originalTotal.add(delta));
 
-  await prisma.$transaction([
-    prisma.offeringRevision.create({
-      data: {
-        churchId,
-        offeringId: id,
-        reason: input.reason,
-        categoryName: input.categoryName ?? null,
-        deltaAmount: delta,
-        originalTotal,
-        revisedTotal,
-        recordedById: userId,
-      },
-    }),
-    prisma.offering.update({
-      where: { id },
-      data: { status: OfferingStatus.REVISED },
-    }),
-    prisma.auditEvent.create({
-      data: {
-        churchId,
-        actorId: userId,
-        action: "offering.revised",
-        entityType: "Offering",
-        entityId: id,
-        summary: input.reason,
-        metadata: {
-          deltaAmount: delta.toFixed(2),
-          originalTotal: originalTotal.toFixed(2),
-          revisedTotal: revisedTotal.toFixed(2),
+  try {
+    await prisma.$transaction([
+      prisma.offeringRevision.create({
+        data: {
+          churchId,
+          offeringId: id,
+          idempotencyKey: input.idempotencyKey,
+          reason: input.reason,
+          categoryName: input.categoryName ?? null,
+          deltaAmount: delta,
+          originalTotal,
+          revisedTotal,
+          recordedById: userId,
         },
-      },
-    }),
-  ]);
+      }),
+      prisma.offering.update({
+        where: { id },
+        data: { status: OfferingStatus.REVISED },
+      }),
+      prisma.auditEvent.create({
+        data: {
+          churchId,
+          actorId: userId,
+          action: "offering.revised",
+          entityType: "Offering",
+          entityId: id,
+          summary: input.reason,
+          metadata: {
+            deltaAmount: delta.toFixed(2),
+            originalTotal: originalTotal.toFixed(2),
+            revisedTotal: revisedTotal.toFixed(2),
+          },
+        },
+      }),
+    ]);
+  } catch (error) {
+    // Two requests raced and the unique constraint caught the loser. The
+    // revision the winner wrote is the right answer, not an error the treasurer
+    // has to read and wonder about.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return findOffering(churchId, id);
+    }
+    throw error;
+  }
 
   return findOffering(churchId, id);
 }

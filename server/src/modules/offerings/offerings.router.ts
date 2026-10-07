@@ -297,6 +297,9 @@ offeringsRouter.post(
       reason: z.string().trim().min(1, "Say what changed and why"),
       categoryName: z.string().trim().min(1).optional(),
       deltaAmount: signedAmount,
+      // Held by the client across a retry, so a double tap or a dropped
+      // connection cannot record the same late transfer twice.
+      idempotencyKey: z.string().trim().min(8, "Send a key of at least 8 characters"),
     }),
   }),
   async (req, res) => {
@@ -304,7 +307,12 @@ offeringsRouter.post(
       churchOf(req),
       param(req, "id"),
       req.user!.sub,
-      req.body as { reason: string; categoryName?: string; deltaAmount: string },
+      req.body as {
+        reason: string;
+        categoryName?: string;
+        deltaAmount: string;
+        idempotencyKey: string;
+      },
     );
     res.status(201).json({ data: await presentOffering(offering) });
   },

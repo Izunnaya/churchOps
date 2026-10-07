@@ -176,14 +176,13 @@ Tracked here rather than quietly:
   reset. Verification codes are at least capped at five attempts per code now,
   but per-address and per-IP limits need a library this project has not agreed
   to add yet.
-- Several findings from the first review pass are recorded and not yet fixed: the
-  revision endpoint accepts no idempotency key, so a double tap writes two
-  revisions and inflates the total; approval lives in three mutable columns, so a
-  revision followed by a re-approval overwrites who approved the original figure;
-  the Secretary can read bucket rates the specification grants only to the
-  Treasurer and the Pastor; category-name uniqueness is case-insensitive in the
-  controller but case-sensitive in the database, and the rate lookup has no
-  deterministic order.
+- Two findings from the review pass are recorded and not yet fixed: approval
+  lives in three mutable columns, so a revision followed by a re-approval
+  overwrites who approved the original figure and when; and category-name
+  uniqueness is case-insensitive in the controller but case-sensitive in the
+  database, while the rate lookup has no deterministic order, so two
+  differently-cased categories of the same name can return different deductions
+  on consecutive reads.
 - `AttendanceSummary` stores the Men/Women/Children split as typed numbers, and
   `Member` has no date of birth, so the split is a headcount rather than derived
   from age as the specification requires. Changing the child-age threshold later
