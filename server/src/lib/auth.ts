@@ -16,6 +16,11 @@ export function verifyPassword(plain: string, hash: string): Promise<boolean> {
 
 export type AccessTokenPayload = {
   sub: string;
+  /// The one church this session acts for. The brief gives no church switcher,
+  /// so a session is never for more than one, whatever DEC-02 decides about an
+  /// account spanning churches. It is signed into the token precisely so a
+  /// client cannot choose it.
+  churchId: string;
   roles: Role[];
   /// Departments this user leads, for scoping a leader to their own reports.
   departmentIds: string[];

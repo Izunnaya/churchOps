@@ -4,6 +4,7 @@ import { prisma } from "../../lib/prisma";
 import { Role } from "../../generated/prisma/enums";
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
+import { churchOf, scopeToChurch } from "../../middleware/scopeToChurch";
 import { validate } from "../../middleware/validate";
 import { conflict, notFound } from "../../lib/errors";
 import { param } from "../../lib/http";
@@ -14,6 +15,7 @@ import { param } from "../../lib/http";
 export const incomeCategoriesRouter = Router();
 
 incomeCategoriesRouter.use(authenticate);
+incomeCategoriesRouter.use(scopeToChurch);
 
 const ratePercent = z
   .string()
@@ -23,8 +25,9 @@ const ratePercent = z
 incomeCategoriesRouter.get(
   "/",
   authorize(Role.TREASURER, Role.SECRETARY, Role.PASTOR),
-  async (_req, res) => {
+  async (req, res) => {
     const categories = await prisma.incomeCategory.findMany({
+      where: { churchId: churchOf(req) },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
 
@@ -60,15 +63,19 @@ incomeCategoriesRouter.post(
       bucketRatePercent?: string | null;
     };
 
+    const churchId = churchOf(req);
+
+    // A category with this name in another church is not a collision.
     const existing = await prisma.incomeCategory.findFirst({
-      where: { name: { equals: name, mode: "insensitive" } },
+      where: { churchId, name: { equals: name, mode: "insensitive" } },
     });
     if (existing) throw conflict(`${name} is already on the list.`);
 
-    const count = await prisma.incomeCategory.count();
+    const count = await prisma.incomeCategory.count({ where: { churchId } });
 
     const category = await prisma.incomeCategory.create({
       data: {
+        churchId,
         name,
         isCashByDefault,
         bucketRatePercent: bucketRatePercent ?? null,
@@ -94,7 +101,10 @@ incomeCategoriesRouter.patch(
     }),
   }),
   async (req, res) => {
-    const existing = await prisma.incomeCategory.findUnique({ where: { id: param(req, "id") } });
+    // findFirst, not findUnique: a row in another church has to read as missing.
+  const existing = await prisma.incomeCategory.findFirst({
+    where: { id: param(req, "id"), churchId: churchOf(req) },
+  });
     if (!existing) throw notFound("That category");
 
     const body = req.body as {
@@ -128,7 +138,10 @@ incomeCategoriesRouter.patch(
 /// Categories are retired rather than deleted: past offerings reference them by
 /// name, and the rate that was applied then has to stay explicable.
 incomeCategoriesRouter.delete("/:id", authorize(Role.TREASURER), async (req, res) => {
-  const existing = await prisma.incomeCategory.findUnique({ where: { id: param(req, "id") } });
+  // findFirst, not findUnique: a row in another church has to read as missing.
+  const existing = await prisma.incomeCategory.findFirst({
+    where: { id: param(req, "id"), churchId: churchOf(req) },
+  });
   if (!existing) throw notFound("That category");
 
   const category = await prisma.incomeCategory.update({

@@ -4,6 +4,7 @@ import { prisma } from "../../lib/prisma";
 import { OfferingStatus, Role } from "../../generated/prisma/enums";
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
+import { churchOf, scopeToChurch } from "../../middleware/scopeToChurch";
 import { validate } from "../../middleware/validate";
 import { badRequest, conflict, notFound } from "../../lib/errors";
 import { param } from "../../lib/http";
@@ -22,6 +23,7 @@ import {
 export const offeringsRouter = Router();
 
 offeringsRouter.use(authenticate);
+offeringsRouter.use(scopeToChurch);
 
 /// Finance is visible to the Secretary and the Pastor, and writable only by the
 /// Treasurer. The Pastor's only write is approval, which has its own route.
@@ -55,7 +57,8 @@ offeringsRouter.get(
       skip: number;
     };
 
-    const where = status ? { status } : {};
+    const churchId = churchOf(req);
+    const where = status ? { churchId, status } : { churchId };
 
     const [rows, total] = await Promise.all([
       prisma.offering.findMany({
@@ -76,7 +79,7 @@ offeringsRouter.get(
 );
 
 offeringsRouter.get("/:id", canView, async (req, res) => {
-  const offering = await findOffering(param(req, "id"));
+  const offering = await findOffering(churchOf(req), param(req, "id"));
   res.json({ data: await presentOffering(offering) });
 });
 
@@ -87,12 +90,14 @@ offeringsRouter.post(
   canEdit,
   validate({ body: z.object({ serviceId: z.string().min(1) }) }),
   async (req, res) => {
+    const churchId = churchOf(req);
     const { serviceId } = req.body as { serviceId: string };
 
-    const service = await prisma.service.findUnique({ where: { id: serviceId } });
+    // Scoped: a service in another church reads as missing, not forbidden.
+    const service = await prisma.service.findFirst({ where: { id: serviceId, churchId } });
     if (!service) throw notFound("That service");
 
-    const existing = await prisma.offering.findUnique({ where: { serviceId } });
+    const existing = await prisma.offering.findFirst({ where: { serviceId, churchId } });
     if (existing) {
       throw conflict("An offering has already been started for this service.", {
         offeringId: existing.id,
@@ -100,7 +105,7 @@ offeringsRouter.post(
     }
 
     const offering = await prisma.offering.create({
-      data: { serviceId, recordedById: req.user!.sub },
+      data: { churchId, serviceId, recordedById: req.user!.sub },
       include: offeringInclude,
     });
 
@@ -133,7 +138,7 @@ offeringsRouter.post(
       }),
   }),
   async (req, res) => {
-    const offering = await findOffering(param(req, "id"));
+    const offering = await findOffering(churchOf(req), param(req, "id"));
     assertEditable(offering);
 
     const { name, isCash, transferAmount } = req.body as {
@@ -149,6 +154,7 @@ offeringsRouter.post(
 
     await prisma.offeringCategory.create({
       data: {
+        churchId: offering.churchId,
         offeringId: offering.id,
         name,
         isCash,
@@ -157,7 +163,7 @@ offeringsRouter.post(
       },
     });
 
-    res.status(201).json({ data: await presentOffering(await findOffering(offering.id)) });
+    res.status(201).json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
   },
 );
 
@@ -187,7 +193,7 @@ offeringsRouter.patch(
     }),
   }),
   async (req, res) => {
-    const offering = await findOffering(param(req, "id"));
+    const offering = await findOffering(churchOf(req), param(req, "id"));
     assertEditable(offering);
 
     const category = offering.categories.find((c) => c.id === param(req, "categoryId"));
@@ -223,6 +229,7 @@ offeringsRouter.patch(
         if (rows.length > 0) {
           await tx.denominationCount.createMany({
             data: rows.map((d) => ({
+              churchId: offering.churchId,
               categoryId: category.id,
               denomination: d.denomination,
               quantity: d.quantity,
@@ -232,12 +239,12 @@ offeringsRouter.patch(
       }
     });
 
-    res.json({ data: await presentOffering(await findOffering(offering.id)) });
+    res.json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
   },
 );
 
 offeringsRouter.delete("/:id/categories/:categoryId", canEdit, async (req, res) => {
-  const offering = await findOffering(param(req, "id"));
+  const offering = await findOffering(churchOf(req), param(req, "id"));
   assertEditable(offering);
 
   const category = offering.categories.find((c) => c.id === param(req, "categoryId"));
@@ -245,18 +252,18 @@ offeringsRouter.delete("/:id/categories/:categoryId", canEdit, async (req, res) 
 
   await prisma.offeringCategory.delete({ where: { id: category.id } });
 
-  res.json({ data: await presentOffering(await findOffering(offering.id)) });
+  res.json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
 });
 
 // --- state changes -------------------------------------------------------
 
 offeringsRouter.post("/:id/finalize", canEdit, async (req, res) => {
-  const offering = await finalizeOffering(param(req, "id"), req.user!.sub);
+  const offering = await finalizeOffering(churchOf(req), param(req, "id"), req.user!.sub);
   res.json({ data: await presentOffering(offering) });
 });
 
 offeringsRouter.post("/:id/approve", authorize(Role.PASTOR), async (req, res) => {
-  const offering = await approveOffering(param(req, "id"), req.user!.sub);
+  const offering = await approveOffering(churchOf(req), param(req, "id"), req.user!.sub);
   res.json({ data: await presentOffering(offering) });
 });
 
@@ -267,17 +274,18 @@ offeringsRouter.post(
   authorize(Role.PASTOR, Role.SECRETARY, Role.TREASURER),
   validate({ body: z.object({ body: z.string().trim().min(1, "Write a note first") }) }),
   async (req, res) => {
-    const offering = await findOffering(param(req, "id"));
+    const offering = await findOffering(churchOf(req), param(req, "id"));
 
     await prisma.approvalComment.create({
       data: {
+        churchId: offering.churchId,
         authorId: req.user!.sub,
         body: (req.body as { body: string }).body,
         offeringId: offering.id,
       },
     });
 
-    res.status(201).json({ data: await presentOffering(await findOffering(offering.id)) });
+    res.status(201).json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
   },
 );
 
@@ -293,6 +301,7 @@ offeringsRouter.post(
   }),
   async (req, res) => {
     const offering = await recordRevision(
+      churchOf(req),
       param(req, "id"),
       req.user!.sub,
       req.body as { reason: string; categoryName?: string; deltaAmount: string },

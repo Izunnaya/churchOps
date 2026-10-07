@@ -20,17 +20,21 @@ there are no migrations, and none of the written routes are mounted yet. The
 Prisma schema covers every entity, and route, middleware and domain files exist
 for authentication and offerings. The frontend has no `package.json`.
 
-`npx tsc --noEmit` currently reports ten errors, and they are deliberate. Making
-`churchId` required broke exactly the ten `create` calls in the offering files
-that have no church to supply yet — there is no session-scoped church until the
-middleware lands. The list is the worklist for that slice. The running server is
-unaffected, because no router is mounted: `npm run dev` still answers `/health`.
+`npx tsc --noEmit` reports one error, and it is deliberate. Signing in has to put
+the caller's church into the session token, and there is no way to derive it yet:
+the account models carry no church, because whether one account belongs to a
+single church or spans several is an open decision. Guessing would hard-code that
+answer into sign-in, so the call is left failing with the reasoning written beside
+it. Everything downstream — the scoping middleware and every scoped query — is
+finished and waiting on that one value. The running server is unaffected, because
+no router is mounted: `npm run dev` still answers `/health`.
 
 | Built                                                                      | Not yet built                                                               |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | The domain model: entities, computations, state machines, validation rules  | **The scoping that makes the church column mean anything**                   |
 | The isolation rules the platform has to meet, written as a specification    | Any migration, so no database exists                                        |
-| A `Church` model, a two-church seed, and a required church column on all 20 church-owned models | Any scoping. The column exists; no query filters on it yet                   |
+| A `Church` model, a two-church seed, and a required church column on all 20 church-owned models | Sign-in putting a church into the session, which blocks the rest             |
+| Church scoping on every offering and income-category query, and one middleware that resolves the church from the session | The two-church tests that prove the scoping holds                            |
 |                                                                            | The church column on the account models, pending a cross-church identity decision |
 | The design: 88 screens across five roles, mobile and desktop               | Any route mounted — the written auth and offering routers are not wired in  |
 | A fixed visual language: palette, type scale, status chips, touch metrics   | Any test, and any test script to run one                                    |
@@ -83,7 +87,7 @@ abandoned start. Treat it as empty.
 │       ├── index.ts         App setup and listen, nothing else
 │       ├── domain/          Offering rules and their checks
 │       ├── lib/             Env, the Prisma client, money, errors, HTTP and auth helpers
-│       ├── middleware/      authenticate, authorize, validate, error handling
+│       ├── middleware/      authenticate, scopeToChurch, authorize, validate, errors
 │       └── modules/         Route files for auth and offerings
 ├── frontend/            The React PWA. Not scaffolded yet.
 ├── design/              Design frames, and the consolidated design spec
@@ -125,8 +129,8 @@ no database behind it, which is not yet worth putting anywhere.
 ## Stack
 
 Express 5, TypeScript 5.9 (strict), Prisma 6.19 over PostgreSQL, `jsonwebtoken`
-for sessions in an httpOnly cookie, `bcryptjs` for password hashing, `zod` for
-validation, `nodemon` and `ts-node` in development. The frontend is planned as
+for session tokens, `bcryptjs` for password hashing, `zod` for validation,
+`nodemon` and `ts-node` in development. The frontend is planned as
 Vite, React, TypeScript, Tailwind, shadcn/ui, TanStack Query and react-hook-form
 with zod, built as a PWA.
 
@@ -134,26 +138,58 @@ with zod, built as a PWA.
 
 Tracked here rather than quietly:
 
-- Tenancy is modelled but not enforced. Twenty church-owned models now carry a
-  required `churchId` with a foreign key, and names that were globally unique
-  — department, income category, the expense week — are unique per church
-  instead. What is missing is the part that actually protects data: no query
-  filters on the column, and a foreign key alone does not stop a read.
+- Tenancy is modelled and partly enforced. Twenty church-owned models carry a
+  required `churchId`; names that were globally unique — department, income
+  category, the expense week — are unique per church instead; sixteen child
+  relations are composite foreign keys on `[churchId, parentId]`, so the database
+  itself refuses a row whose church differs from its parent's. The offering and
+  income-category queries are scoped to the session's church. What is missing is
+  proof: see the test gap below.
 - The account models — `User` and its roles, sessions and tokens — have no
   church column yet. `User.email` and `User.username` are globally unique, which
   would forbid one person holding accounts at two churches. Whether that should
   be allowed is an open decision, so the constraint is being left alone rather
   than guessed at.
-- The type-check is red on purpose: ten errors, all `create` calls in the
-  offering files that now need a church and have nowhere to get one from. They
-  close when the scoping middleware lands. Nothing is mounted, so the server
-  still runs.
+- The type-check is red on purpose, at one line: sign-in cannot put a church into
+  the session token until the cross-church identity decision is made. Every query
+  that depends on it is already scoped. Nothing is mounted, so the server runs.
+- Cross-church *reads* are still controller discipline, not a database
+  guarantee. A query that forgets its church filter compiles and returns another
+  church's rows. Child-against-parent divergence is now enforced in the schema,
+  but nothing stops an unscoped `findMany`. The two-church test suite is what
+  turns the convention into a guarantee, and it is not written yet.
+- `MemberImportRow.duplicateOfMemberId` and `resolvedMemberId` can still point at
+  another church's member, which would show a reviewer a name they must not see.
+  They are the two relations a composite key cannot cover, because they use
+  `onDelete: SetNull` and `churchId` cannot be nulled. They need either a
+  different delete behaviour or a check in the controller.
 - `prisma/seed.ts` is outside `tsconfig.json`'s `include`, so the project's own
   `tsc --noEmit` does not check it. Widening that means moving `rootDir`, which
   belongs with the build and test setup rather than here.
-- Refusals currently distinguish a missing record (404) from a forbidden one
-  (403). Once churches share a database they must be identical, because the
-  difference confirms that someone else's record exists.
+- There is no httpOnly cookie and no CSRF defence. Both tokens are returned in
+  the JSON response body and sent back as an `Authorization: Bearer` header, so
+  they sit in storage a script can read; one cross-site scripting bug would hand
+  over a whole church's finances. The specification requires httpOnly cookies
+  with CSRF protection on state-changing requests. It belongs with the login
+  slice.
+- Nothing is rate-limited — not sign-in, not verification codes, not password
+  reset. Verification codes are at least capped at five attempts per code now,
+  but per-address and per-IP limits need a library this project has not agreed
+  to add yet.
+- Several findings from the first review pass are recorded and not yet fixed: the
+  revision endpoint accepts no idempotency key, so a double tap writes two
+  revisions and inflates the total; approval lives in three mutable columns, so a
+  revision followed by a re-approval overwrites who approved the original figure;
+  the Secretary can read bucket rates the specification grants only to the
+  Treasurer and the Pastor; category-name uniqueness is case-insensitive in the
+  controller but case-sensitive in the database, and the rate lookup has no
+  deterministic order.
+- `AttendanceSummary` stores the Men/Women/Children split as typed numbers, and
+  `Member` has no date of birth, so the split is a headcount rather than derived
+  from age as the specification requires. Changing the child-age threshold later
+  cannot correct past summaries.
+- `Church.enabledModules` is stored and never read, so it looks like access
+  control and is not.
 - The schema represents money as `Decimal(14, 2)`. Every specification says
   integer kobo. The correction touches every money path and is owned by this
   repository's author.

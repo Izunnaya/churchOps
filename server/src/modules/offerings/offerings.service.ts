@@ -6,6 +6,7 @@ import {
   bucketRatesByName,
   computeOfferingTotals,
   serializeOfferingTotals,
+  type BucketRates,
   type CategoryInput,
 } from "../../domain/offering";
 
@@ -32,12 +33,18 @@ export type OfferingWithRelations = NonNullable<
   Awaited<ReturnType<typeof findOfferingOrNull>>
 >;
 
-function findOfferingOrNull(id: string) {
-  return prisma.offering.findUnique({ where: { id }, include: offeringInclude });
+/// findFirst, not findUnique: an offering in another church has to read as
+/// missing rather than forbidden, because a different refusal would confirm it
+/// exists.
+function findOfferingOrNull(churchId: string, id: string) {
+  return prisma.offering.findFirst({ where: { id, churchId }, include: offeringInclude });
 }
 
-export async function findOffering(id: string): Promise<OfferingWithRelations> {
-  const offering = await findOfferingOrNull(id);
+export async function findOffering(
+  churchId: string,
+  id: string,
+): Promise<OfferingWithRelations> {
+  const offering = await findOfferingOrNull(churchId, id);
   if (!offering) throw notFound("That offering");
   return offering;
 }
@@ -53,12 +60,30 @@ export function assertEditable(offering: { status: OfferingStatus }) {
   }
 }
 
-export async function loadBucketRates() {
+export async function loadBucketRates(churchId: string) {
   const categories = await prisma.incomeCategory.findMany({
-    where: { active: true },
+    where: { churchId, active: true },
     select: { name: true, bucketRatePercent: true },
   });
   return bucketRatesByName(categories);
+}
+
+/// Which rates a given offering is entitled to. A draft is still being counted,
+/// so it uses the live table. Anything past draft uses the rates frozen into its
+/// own categories at finalize: rates are treasurer-editable and categories can be
+/// renamed or retired, and none of that may move a figure that was already
+/// finalized or approved.
+async function ratesForOffering(offering: OfferingWithRelations): Promise<BucketRates> {
+  if (offering.status === OfferingStatus.DRAFT) {
+    return loadBucketRates(offering.churchId);
+  }
+
+  const frozen: BucketRates = new Map();
+  for (const category of offering.categories) {
+    if (category.bucketRateSnapshot === null) continue;
+    frozen.set(category.name.trim().toLowerCase(), money(category.bucketRateSnapshot));
+  }
+  return frozen;
 }
 
 function toCategoryInputs(offering: OfferingWithRelations): CategoryInput[] {
@@ -77,7 +102,7 @@ function toCategoryInputs(offering: OfferingWithRelations): CategoryInput[] {
 /// The single read shape every offering screen uses. Totals are computed here,
 /// never read from a column.
 export async function presentOffering(offering: OfferingWithRelations) {
-  const rates = await loadBucketRates();
+  const rates = await ratesForOffering(offering);
   const totals = computeOfferingTotals(toCategoryInputs(offering), rates);
   const serialized = serializeOfferingTotals(totals);
 
@@ -142,15 +167,15 @@ export async function presentOffering(offering: OfferingWithRelations) {
   };
 }
 
-export async function finalizeOffering(id: string, userId: string) {
-  const offering = await findOffering(id);
+export async function finalizeOffering(churchId: string, id: string, userId: string) {
+  const offering = await findOffering(churchId, id);
   assertEditable(offering);
 
   if (offering.categories.length === 0) {
     throw badRequest("Add at least one category before finalizing.");
   }
 
-  const rates = await loadBucketRates();
+  const rates = await loadBucketRates(churchId);
   const totals = computeOfferingTotals(toCategoryInputs(offering), rates);
 
   if (totals.categoriesTotal.lte(0)) {
@@ -158,6 +183,14 @@ export async function finalizeOffering(id: string, userId: string) {
   }
 
   await prisma.$transaction([
+    // Freeze each category's rate before the status changes, in the same
+    // transaction, so a finalized offering can never be short of a snapshot.
+    ...offering.categories.map((category) =>
+      prisma.offeringCategory.update({
+        where: { id: category.id },
+        data: { bucketRateSnapshot: rates.get(category.name.trim().toLowerCase()) ?? null },
+      }),
+    ),
     prisma.offering.update({
       where: { id },
       data: {
@@ -168,6 +201,7 @@ export async function finalizeOffering(id: string, userId: string) {
     }),
     prisma.auditEvent.create({
       data: {
+        churchId,
         actorId: userId,
         action: "offering.finalized",
         entityType: "Offering",
@@ -182,11 +216,11 @@ export async function finalizeOffering(id: string, userId: string) {
     }),
   ]);
 
-  return findOffering(id);
+  return findOffering(churchId, id);
 }
 
-export async function approveOffering(id: string, userId: string) {
-  const offering = await findOffering(id);
+export async function approveOffering(churchId: string, id: string, userId: string) {
+  const offering = await findOffering(churchId, id);
 
   if (offering.status === OfferingStatus.DRAFT) {
     throw conflict("This offering has not been finalized yet.");
@@ -202,6 +236,7 @@ export async function approveOffering(id: string, userId: string) {
     }),
     prisma.auditEvent.create({
       data: {
+        churchId,
         actorId: userId,
         action: "offering.approved",
         entityType: "Offering",
@@ -211,17 +246,18 @@ export async function approveOffering(id: string, userId: string) {
     }),
   ]);
 
-  return findOffering(id);
+  return findOffering(churchId, id);
 }
 
 /// A late transfer. Records the delta against a snapshot of the total at the
 /// time, so the original and the revised figure can be shown distinctly.
 export async function recordRevision(
+  churchId: string,
   id: string,
   userId: string,
   input: { reason: string; categoryName?: string | null; deltaAmount: string },
 ) {
-  const offering = await findOffering(id);
+  const offering = await findOffering(churchId, id);
 
   if (offering.status === OfferingStatus.DRAFT) {
     throw conflict("This offering is still a draft — edit it directly instead.");
@@ -230,7 +266,7 @@ export async function recordRevision(
   const delta = round(money(input.deltaAmount));
   if (delta.isZero()) throw badRequest("A revision needs a non-zero amount.");
 
-  const rates = await loadBucketRates();
+  const rates = await ratesForOffering(offering);
   const totals = computeOfferingTotals(toCategoryInputs(offering), rates);
 
   const priorDelta = sum(offering.revisions.map((r) => r.deltaAmount));
@@ -240,6 +276,7 @@ export async function recordRevision(
   await prisma.$transaction([
     prisma.offeringRevision.create({
       data: {
+        churchId,
         offeringId: id,
         reason: input.reason,
         categoryName: input.categoryName ?? null,
@@ -255,6 +292,7 @@ export async function recordRevision(
     }),
     prisma.auditEvent.create({
       data: {
+        churchId,
         actorId: userId,
         action: "offering.revised",
         entityType: "Offering",
@@ -269,5 +307,5 @@ export async function recordRevision(
     }),
   ]);
 
-  return findOffering(id);
+  return findOffering(churchId, id);
 }
