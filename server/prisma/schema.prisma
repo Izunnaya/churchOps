@@ -23,6 +23,52 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
+// Tenancy
+// ---------------------------------------------------------------------------
+
+enum ChurchStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+/// One independent church. Several share this application and this database,
+/// and a church user can never reach or discover another one.
+///
+/// Nothing references this model yet: the required `churchId` on every
+/// church-owned row, and the scoping that enforces it, arrive in slices 0.6 and
+/// 0.7. Until then this is the root of the tree with no branches attached, which
+/// is why the seed can create the two churches but not their contents.
+model Church {
+  id   String @id @default(cuid())
+  /// Not unique. Two unrelated churches may legitimately share a name; `slug`
+  /// is the handle that has to be distinct.
+  name String
+  slug String @unique
+
+  status ChurchStatus @default(ACTIVE)
+
+  /// Identity belongs to the church that owns it. None of this is ever a
+  /// fallback for another church, including in PDFs and notifications.
+  /// A null logo means the interface draws an initials mark instead.
+  logoFileId String?
+  /// A named palette, not editable colours: "crest" or "default".
+  accentSet  String  @default("default")
+
+  /// Which parts of the product this church has. Whether this is church-editable
+  /// configuration or a platform-set entitlement is undecided — Build Spec
+  /// section 17, proposed DEC-17.
+  enabledModules String[]
+
+  timezone String @default("Africa/Lagos")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
 // Identity and access
 // ---------------------------------------------------------------------------
 

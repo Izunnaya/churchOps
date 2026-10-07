@@ -26,8 +26,9 @@ root were replaced by the modules in `lib/` that everything had been importing.
 
 | Built                                                                      | Not yet built                                                               |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| The domain model: entities, computations, state machines, validation rules  | **Tenancy. There is no `Church` entity and no church column on any model**  |
+| The domain model: entities, computations, state machines, validation rules  | **The church column on every church-owned model, and the scoping that uses it** |
 | The isolation rules the platform has to meet, written as a specification    | Any migration, so no database exists                                        |
+| A `Church` model, and a seed that creates two of them                      | Per-church contents — members, users, departments and categories            |
 | The design: 88 screens across five roles, mobile and desktop               | Any route mounted — the written auth and offering routers are not wired in  |
 | A fixed visual language: palette, type scale, status chips, touch metrics   | Any test, and any test script to run one                                    |
 | Prisma schema, 26 models and enums, covering every entity                  | The frontend, which has no `package.json` yet                               |
@@ -73,7 +74,8 @@ abandoned start. Treat it as empty.
 ```
 ├── server/              Express + TypeScript API over PostgreSQL with Prisma
 │   ├── prisma/
-│   │   └── schema.prisma    Every model, relation and constraint
+│   │   ├── schema.prisma    Every model, relation and constraint
+│   │   └── seed.ts          Fictional data only. Needs a database, so unrun
 │   └── src/
 │       ├── index.ts         App setup and listen, nothing else
 │       ├── domain/          Offering rules and their checks
@@ -129,11 +131,15 @@ with zod, built as a PWA.
 
 Tracked here rather than quietly:
 
-- No tenancy in the code yet: no `Church` model, no church column, no scoping on
-  any query. `User.email` and `User.username` are globally unique, which would
-  forbid one person holding accounts at two churches — whether that should be
-  allowed is an open decision, so the constraint is being left alone rather than
-  guessed at.
+- Tenancy is started but not enforced. A `Church` model exists and the seed
+  creates two, but nothing references it yet: no church column on any other
+  model, and no query is scoped. `User.email` and `User.username` are globally
+  unique, which would forbid one person holding accounts at two churches —
+  whether that should be allowed is an open decision, so the constraint is being
+  left alone rather than guessed at.
+- `prisma/seed.ts` is outside `tsconfig.json`'s `include`, so the project's own
+  `tsc --noEmit` does not check it. Widening that means moving `rootDir`, which
+  belongs with the build and test setup rather than here.
 - Refusals currently distinguish a missing record (404) from a forbidden one
   (403). Once churches share a database they must be identical, because the
   difference confirms that someone else's record exists.
