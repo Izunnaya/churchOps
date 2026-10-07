@@ -20,26 +20,29 @@ there are no migrations, and none of the written routes are mounted yet. The
 Prisma schema covers every entity, and route, middleware and domain files exist
 for authentication and offerings. The frontend has no `package.json`.
 
-`npx tsc --noEmit` reports no errors, which is newer than it sounds — the project
-did not compile at all until the empty `env` and `db` placeholders at the `src`
-root were replaced by the modules in `lib/` that everything had been importing.
+`npx tsc --noEmit` currently reports ten errors, and they are deliberate. Making
+`churchId` required broke exactly the ten `create` calls in the offering files
+that have no church to supply yet — there is no session-scoped church until the
+middleware lands. The list is the worklist for that slice. The running server is
+unaffected, because no router is mounted: `npm run dev` still answers `/health`.
 
 | Built                                                                      | Not yet built                                                               |
 | -------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| The domain model: entities, computations, state machines, validation rules  | **The church column on every church-owned model, and the scoping that uses it** |
+| The domain model: entities, computations, state machines, validation rules  | **The scoping that makes the church column mean anything**                   |
 | The isolation rules the platform has to meet, written as a specification    | Any migration, so no database exists                                        |
-| A `Church` model, and a seed that creates two of them                      | Per-church contents — members, users, departments and categories            |
+| A `Church` model, a two-church seed, and a required church column on all 20 church-owned models | Any scoping. The column exists; no query filters on it yet                   |
+|                                                                            | The church column on the account models, pending a cross-church identity decision |
 | The design: 88 screens across five roles, mobile and desktop               | Any route mounted — the written auth and offering routers are not wired in  |
 | A fixed visual language: palette, type scale, status chips, touch metrics   | Any test, and any test script to run one                                    |
-| Prisma schema, 26 models and enums, covering every entity                  | The frontend, which has no `package.json` yet                               |
+| Prisma schema, 26 models and 15 enums, covering every entity               | The frontend, which has no `package.json` yet                               |
 | Route, middleware and domain files for auth, offerings and income categories | Every screen                                                                |
 | The money, error and HTTP helpers those files import                       | PDF export, notifications, offline attendance sync                          |
 | An Express server that starts and serves `GET /health`                     | Deployment, and the hosting decision it waits on                            |
 
-The schema and the written routes predate the move to multiple churches, so they
-are single-church throughout. Adding the church column, scoping every query to it
-and proving the isolation with two-church tests comes before any further feature
-work — retro-fitting that to endpoints already in use is how a leak ships.
+The written routes predate the move to multiple churches. The column they need
+now exists, but scoping every query to it and proving the isolation with
+two-church tests comes before any further feature work — retro-fitting that to
+endpoints already in use is how a leak ships.
 
 ## Running it locally
 
@@ -131,12 +134,20 @@ with zod, built as a PWA.
 
 Tracked here rather than quietly:
 
-- Tenancy is started but not enforced. A `Church` model exists and the seed
-  creates two, but nothing references it yet: no church column on any other
-  model, and no query is scoped. `User.email` and `User.username` are globally
-  unique, which would forbid one person holding accounts at two churches —
-  whether that should be allowed is an open decision, so the constraint is being
-  left alone rather than guessed at.
+- Tenancy is modelled but not enforced. Twenty church-owned models now carry a
+  required `churchId` with a foreign key, and names that were globally unique
+  — department, income category, the expense week — are unique per church
+  instead. What is missing is the part that actually protects data: no query
+  filters on the column, and a foreign key alone does not stop a read.
+- The account models — `User` and its roles, sessions and tokens — have no
+  church column yet. `User.email` and `User.username` are globally unique, which
+  would forbid one person holding accounts at two churches. Whether that should
+  be allowed is an open decision, so the constraint is being left alone rather
+  than guessed at.
+- The type-check is red on purpose: ten errors, all `create` calls in the
+  offering files that now need a church and have nowhere to get one from. They
+  close when the scoping middleware lands. Nothing is mounted, so the server
+  still runs.
 - `prisma/seed.ts` is outside `tsconfig.json`'s `include`, so the project's own
   `tsc --noEmit` does not check it. Widening that means moving `rootDir`, which
   belongs with the build and test setup rather than here.

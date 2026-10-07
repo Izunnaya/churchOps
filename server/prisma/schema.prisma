@@ -35,10 +35,14 @@ enum ChurchStatus {
 /// One independent church. Several share this application and this database,
 /// and a church user can never reach or discover another one.
 ///
-/// Nothing references this model yet: the required `churchId` on every
-/// church-owned row, and the scoping that enforces it, arrive in slices 0.6 and
-/// 0.7. Until then this is the root of the tree with no branches attached, which
-/// is why the seed can create the two churches but not their contents.
+/// Every church-owned model carries a required `churchId` pointing here. The
+/// account models — User and its roles, sessions and tokens — deliberately do
+/// not, until DEC-02 decides whether an account belongs to one church or can
+/// span several.
+///
+/// A foreign key is not isolation on its own. Nothing yet forces a query to
+/// filter on it: that is the scoping middleware in slice 0.7, and the tests that
+/// prove it in 0.9.
 model Church {
   id   String @id @default(cuid())
   /// Not unique. Two unrelated churches may legitimately share a name; `slug`
@@ -64,6 +68,30 @@ model Church {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Every church-owned model, back-referenced. Account models (User and its
+  // tokens and roles) are deliberately absent until DEC-02 decides whether an
+  // account belongs to one church or spans several.
+  members                Member[]
+  departments            Department[]
+  departmentMembers      DepartmentMember[]
+  services               Service[]
+  attendanceRecords      AttendanceRecord[]
+  attendanceSummaries    AttendanceSummary[]
+  offerings              Offering[]
+  offeringCategories     OfferingCategory[]
+  denominationCounts     DenominationCount[]
+  offeringRevisions      OfferingRevision[]
+  incomeCategories       IncomeCategory[]
+  weeklyFinancialReports WeeklyFinancialReport[]
+  weeklyExpenses         WeeklyExpense[]
+  expenseItems           ExpenseItem[]
+  approvalComments       ApprovalComment[]
+  departmentReports      DepartmentReport[]
+  memberImports          MemberImport[]
+  memberImportRows       MemberImportRow[]
+  notifications          Notification[]
+  auditEvents            AuditEvent[]
 
   @@index([status])
 }
@@ -120,23 +148,23 @@ model User {
   auditEvents   AuditEvent[]
   comments      ApprovalComment[]
 
-  membersAdded        Member[]                @relation("MemberAddedBy")
-  servicesCreated     Service[]               @relation("ServiceCreatedBy")
-  attendanceMarked    AttendanceRecord[]      @relation("AttendanceMarkedBy")
-  attendanceCompiled  AttendanceSummary[]     @relation("AttendanceCompiledBy")
-  offeringsRecorded   Offering[]              @relation("OfferingRecordedBy")
-  offeringsFinalized  Offering[]              @relation("OfferingFinalizedBy")
-  offeringsApproved   Offering[]              @relation("OfferingApprovedBy")
-  revisionsRecorded   OfferingRevision[]      @relation("RevisionRecordedBy")
-  categoriesMaintained IncomeCategory[]       @relation("IncomeCategoryUpdatedBy")
-  reportsPrepared     WeeklyFinancialReport[] @relation("FinancialReportPreparedBy")
-  reportsApproved     WeeklyFinancialReport[] @relation("FinancialReportApprovedBy")
-  expensesPrepared    WeeklyExpense[]         @relation("ExpensePreparedBy")
-  expensesApproved    WeeklyExpense[]         @relation("ExpenseApprovedBy")
-  deptReportsSubmitted DepartmentReport[]     @relation("DeptReportSubmittedBy")
-  deptReportsReviewed  DepartmentReport[]     @relation("DeptReportReviewedBy")
-  importsUploaded     MemberImport[]          @relation("ImportUploadedBy")
-  importRowsResolved  MemberImportRow[]       @relation("ImportRowResolvedBy")
+  membersAdded         Member[]                @relation("MemberAddedBy")
+  servicesCreated      Service[]               @relation("ServiceCreatedBy")
+  attendanceMarked     AttendanceRecord[]      @relation("AttendanceMarkedBy")
+  attendanceCompiled   AttendanceSummary[]     @relation("AttendanceCompiledBy")
+  offeringsRecorded    Offering[]              @relation("OfferingRecordedBy")
+  offeringsFinalized   Offering[]              @relation("OfferingFinalizedBy")
+  offeringsApproved    Offering[]              @relation("OfferingApprovedBy")
+  revisionsRecorded    OfferingRevision[]      @relation("RevisionRecordedBy")
+  categoriesMaintained IncomeCategory[]        @relation("IncomeCategoryUpdatedBy")
+  reportsPrepared      WeeklyFinancialReport[] @relation("FinancialReportPreparedBy")
+  reportsApproved      WeeklyFinancialReport[] @relation("FinancialReportApprovedBy")
+  expensesPrepared     WeeklyExpense[]         @relation("ExpensePreparedBy")
+  expensesApproved     WeeklyExpense[]         @relation("ExpenseApprovedBy")
+  deptReportsSubmitted DepartmentReport[]      @relation("DeptReportSubmittedBy")
+  deptReportsReviewed  DepartmentReport[]      @relation("DeptReportReviewedBy")
+  importsUploaded      MemberImport[]          @relation("ImportUploadedBy")
+  importRowsResolved   MemberImportRow[]       @relation("ImportRowResolvedBy")
 
   @@index([status])
 }
@@ -220,6 +248,8 @@ enum MemberStatus {
 
 model Member {
   id        String       @id @default(cuid())
+  churchId  String
+  church    Church       @relation(fields: [churchId], references: [id], onDelete: Cascade)
   firstName String
   lastName  String
   sex       Sex?
@@ -250,21 +280,29 @@ model Member {
   @@index([lastName, firstName])
   @@index([kind, status])
   @@index([phone])
+  @@index([churchId])
 }
 
 model Department {
   id        String   @id @default(cuid())
-  name      String   @unique
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   leaders UserRole[]
   members DepartmentMember[]
   reports DepartmentReport[]
+
+  @@unique([churchId, name])
+  @@index([churchId])
 }
 
 model DepartmentMember {
   id           String     @id @default(cuid())
+  churchId     String
+  church       Church     @relation(fields: [churchId], references: [id], onDelete: Cascade)
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   memberId     String
@@ -272,6 +310,7 @@ model DepartmentMember {
   addedAt      DateTime   @default(now())
 
   @@unique([departmentId, memberId])
+  @@index([churchId])
 }
 
 // ---------------------------------------------------------------------------
@@ -290,10 +329,12 @@ enum ServiceKind {
 }
 
 model Service {
-  id     String      @id @default(cuid())
-  name   String
-  kind   ServiceKind
-  heldOn DateTime    @db.Date
+  id       String      @id @default(cuid())
+  churchId String
+  church   Church      @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  name     String
+  kind     ServiceKind
+  heldOn   DateTime    @db.Date
 
   createdById String?
   createdBy   User?   @relation("ServiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
@@ -305,8 +346,9 @@ model Service {
   summary    AttendanceSummary?
   offering   Offering?
 
-  @@unique([heldOn, kind])
+  @@unique([churchId, heldOn, kind])
   @@index([heldOn])
+  @@index([churchId])
 }
 
 enum AttendanceSource {
@@ -316,6 +358,8 @@ enum AttendanceSource {
 
 model AttendanceRecord {
   id        String  @id @default(cuid())
+  churchId  String
+  church    Church  @relation(fields: [churchId], references: [id], onDelete: Cascade)
   serviceId String
   service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
   memberId  String
@@ -333,6 +377,7 @@ model AttendanceRecord {
   @@unique([serviceId, memberId])
   @@index([serviceId])
   @@index([memberId])
+  @@index([churchId])
 }
 
 /// The Secretary's compiled headcount for a service. Per-member marks and the
@@ -341,6 +386,8 @@ model AttendanceRecord {
 /// for instance) live only here.
 model AttendanceSummary {
   id        String  @id @default(cuid())
+  churchId  String
+  church    Church  @relation(fields: [churchId], references: [id], onDelete: Cascade)
   serviceId String  @unique
   service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
@@ -355,6 +402,8 @@ model AttendanceSummary {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([churchId])
 }
 
 // ---------------------------------------------------------------------------
@@ -370,6 +419,8 @@ enum OfferingStatus {
 
 model Offering {
   id        String  @id @default(cuid())
+  churchId  String
+  church    Church  @relation(fields: [churchId], references: [id], onDelete: Cascade)
   serviceId String  @unique
   service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
@@ -395,6 +446,7 @@ model Offering {
   comments   ApprovalComment[]
 
   @@index([status])
+  @@index([churchId])
 }
 
 /// Each category carries its own denomination count, because Tithe and Worship
@@ -406,6 +458,8 @@ model Offering {
 /// SUM(denomination * quantity) over its DenominationCount rows.
 model OfferingCategory {
   id         String   @id @default(cuid())
+  churchId   String
+  church     Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
   offeringId String
   offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
 
@@ -426,12 +480,15 @@ model OfferingCategory {
 
   @@unique([offeringId, name])
   @@index([offeringId])
+  @@index([churchId])
 }
 
 /// One row per note value the treasurer counted for a category, e.g.
 /// denomination 1000, quantity 23.
 model DenominationCount {
   id         String           @id @default(cuid())
+  churchId   String
+  church     Church           @relation(fields: [churchId], references: [id], onDelete: Cascade)
   categoryId String
   category   OfferingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
@@ -440,6 +497,7 @@ model DenominationCount {
 
   @@unique([categoryId, denomination])
   @@index([categoryId])
+  @@index([churchId])
 }
 
 /// A late transfer after finalization. The original figures stay on the
@@ -447,6 +505,8 @@ model DenominationCount {
 /// revised total can be shown side by side, with who, when and why.
 model OfferingRevision {
   id         String   @id @default(cuid())
+  churchId   String
+  church     Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
   offeringId String
   offering   Offering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
 
@@ -464,6 +524,7 @@ model OfferingRevision {
   recordedAt   DateTime @default(now())
 
   @@index([offeringId])
+  @@index([churchId])
 }
 
 /// The treasurer-maintainable category list, and the bucket rate table the
@@ -473,8 +534,10 @@ model OfferingRevision {
 /// The deduction itself is never stored: it is amount * bucketRatePercent,
 /// computed at read time.
 model IncomeCategory {
-  id   String @id @default(cuid())
-  name String @unique
+  id       String @id @default(cuid())
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  name     String
 
   /// Seed Faith, Special Offering and Donations default to transfer.
   isCashByDefault Boolean @default(true)
@@ -491,6 +554,9 @@ model IncomeCategory {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([churchId, name])
+  @@index([churchId])
 }
 
 // ---------------------------------------------------------------------------
@@ -508,6 +574,8 @@ enum FinancialReportStatus {
 /// without touching this row.
 model WeeklyFinancialReport {
   id        String   @id @default(cuid())
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
   weekStart DateTime @db.Date
   weekEnd   DateTime @db.Date
 
@@ -530,8 +598,9 @@ model WeeklyFinancialReport {
 
   comments ApprovalComment[]
 
-  @@unique([weekStart])
+  @@unique([churchId, weekStart])
   @@index([status])
+  @@index([churchId])
 }
 
 enum ExpenseStatus {
@@ -542,7 +611,9 @@ enum ExpenseStatus {
 
 model WeeklyExpense {
   id        String        @id @default(cuid())
-  weekStart DateTime      @unique @db.Date
+  churchId  String
+  church    Church        @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  weekStart DateTime      @db.Date
   weekEnd   DateTime      @db.Date
   status    ExpenseStatus @default(DRAFT)
   notes     String?
@@ -561,11 +632,15 @@ model WeeklyExpense {
   items    ExpenseItem[]
   comments ApprovalComment[]
 
+  @@unique([churchId, weekStart])
   @@index([status])
+  @@index([churchId])
 }
 
 model ExpenseItem {
   id        String        @id @default(cuid())
+  churchId  String
+  church    Church        @relation(fields: [churchId], references: [id], onDelete: Cascade)
   expenseId String
   expense   WeeklyExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
 
@@ -575,6 +650,7 @@ model ExpenseItem {
   sortOrder Int     @default(0)
 
   @@index([expenseId])
+  @@index([churchId])
 }
 
 /// Lets the Pastor raise a question without it counting as approval or
@@ -582,6 +658,8 @@ model ExpenseItem {
 /// Exactly one of the four targets is set.
 model ApprovalComment {
   id       String @id @default(cuid())
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
   authorId String
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   body     String
@@ -605,6 +683,7 @@ model ApprovalComment {
   @@index([weeklyExpenseId])
   @@index([offeringId])
   @@index([departmentReportId])
+  @@index([churchId])
 }
 
 // ---------------------------------------------------------------------------
@@ -628,6 +707,8 @@ enum DepartmentReportStatus {
 
 model DepartmentReport {
   id           String     @id @default(cuid())
+  churchId     String
+  church       Church     @relation(fields: [churchId], references: [id], onDelete: Cascade)
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
@@ -664,6 +745,7 @@ model DepartmentReport {
   @@unique([departmentId, kind, periodStart])
   @@index([status])
   @@index([departmentId, kind])
+  @@index([churchId])
 }
 
 // ---------------------------------------------------------------------------
@@ -684,6 +766,8 @@ enum ImportRowStatus {
 
 model MemberImport {
   id       String @id @default(cuid())
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
   fileName String
 
   uploadedById String?
@@ -693,10 +777,14 @@ model MemberImport {
   completedAt DateTime?
 
   rows MemberImportRow[]
+
+  @@index([churchId])
 }
 
 model MemberImportRow {
   id        String       @id @default(cuid())
+  churchId  String
+  church    Church       @relation(fields: [churchId], references: [id], onDelete: Cascade)
   importId  String
   import    MemberImport @relation(fields: [importId], references: [id], onDelete: Cascade)
   rowNumber Int
@@ -720,6 +808,7 @@ model MemberImportRow {
 
   @@unique([importId, rowNumber])
   @@index([importId, status])
+  @@index([churchId])
 }
 
 // ---------------------------------------------------------------------------
@@ -735,9 +824,11 @@ enum NotificationChannel {
 /// look back. linkPath is the deep link the message pointed at — every core
 /// screen has to work as a direct landing point.
 model Notification {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   channel  NotificationChannel @default(IN_APP)
   title    String
@@ -748,14 +839,17 @@ model Notification {
   readAt DateTime?
 
   @@index([userId, sentAt])
+  @@index([churchId])
 }
 
 /// Backs the "who recorded the change, when, and the reason" trail the offering
 /// and report screens display.
 model AuditEvent {
-  id      String  @id @default(cuid())
-  actorId String?
-  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  id       String  @id @default(cuid())
+  churchId String
+  church   Church  @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  actorId  String?
+  actor    User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   action     String
   entityType String
@@ -766,4 +860,5 @@ model AuditEvent {
   createdAt DateTime @default(now())
 
   @@index([entityType, entityId, createdAt])
+  @@index([churchId])
 }
