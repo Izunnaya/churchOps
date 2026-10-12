@@ -1,23 +1,26 @@
-import { Router } from "express";
+import { Router, type Request } from "express";
 import { z } from "zod";
 import { prisma } from "../../lib/prisma";
 import { OfferingStatus, Role } from "../../generated/prisma/enums";
 import { authenticate } from "../../middleware/authenticate";
-import { authorize } from "../../middleware/authorize";
+import { authorize, hasRole } from "../../middleware/authorize";
 import { churchOf, scopeToChurch } from "../../middleware/scopeToChurch";
 import { validate } from "../../middleware/validate";
 import { badRequest, conflict, notFound } from "../../lib/errors";
 import { param } from "../../lib/http";
-import { money, round } from "../../lib/money";
+import { kobo } from "../../lib/money";
 import { DENOMINATIONS } from "../../domain/offering";
 import {
   approveOffering,
   assertEditable,
+  assertStillDraft,
   finalizeOffering,
   findOffering,
   offeringInclude,
   presentOffering,
   recordRevision,
+  type OfferingView,
+  type RevisionInput,
 } from "./offerings.service";
 
 export const offeringsRouter = Router();
@@ -29,6 +32,18 @@ offeringsRouter.use(scopeToChurch);
 /// Treasurer. The Pastor's only write is approval, which has its own route.
 const canView = authorize(Role.TREASURER, Role.SECRETARY, Role.PASTOR);
 const canEdit = authorize(Role.TREASURER);
+
+/// What of the bucket this caller may see. Build Spec section 2 gives the rate
+/// table to the Treasurer (edit) and the Senior Pastor (view) only, so the
+/// per-category rate, its deduction and the amount net of it are left out of
+/// the Secretary's copy of the same offering. The aggregate set-aside and
+/// usable income are not: Michael decided they stay visible to her, so they sit
+/// outside this flag.
+function viewFor(req: Request): OfferingView {
+  return {
+    showBucketRates: hasRole(req, Role.TREASURER) || hasRole(req, Role.PASTOR),
+  };
+}
 
 const amount = z
   .string()
@@ -72,7 +87,7 @@ offeringsRouter.get(
     ]);
 
     res.json({
-      data: await Promise.all(rows.map(presentOffering)),
+      data: await Promise.all(rows.map((row) => presentOffering(row, viewFor(req)))),
       page: { total, take, skip },
     });
   },
@@ -80,7 +95,7 @@ offeringsRouter.get(
 
 offeringsRouter.get("/:id", canView, async (req, res) => {
   const offering = await findOffering(churchOf(req), param(req, "id"));
-  res.json({ data: await presentOffering(offering) });
+  res.json({ data: await presentOffering(offering, viewFor(req)) });
 });
 
 // --- draft ---------------------------------------------------------------
@@ -109,7 +124,7 @@ offeringsRouter.post(
       include: offeringInclude,
     });
 
-    res.status(201).json({ data: await presentOffering(offering) });
+    res.status(201).json({ data: await presentOffering(offering, viewFor(req)) });
   },
 );
 
@@ -138,7 +153,8 @@ offeringsRouter.post(
       }),
   }),
   async (req, res) => {
-    const offering = await findOffering(churchOf(req), param(req, "id"));
+    const churchId = churchOf(req);
+    const offering = await findOffering(churchId, param(req, "id"));
     assertEditable(offering);
 
     const { name, isCash, transferAmount } = req.body as {
@@ -152,18 +168,26 @@ offeringsRouter.post(
     );
     if (duplicate) throw conflict(`${name} is already on this offering.`);
 
-    await prisma.offeringCategory.create({
-      data: {
-        churchId: offering.churchId,
-        offeringId: offering.id,
-        name,
-        isCash,
-        transferAmount: isCash ? null : round(money(transferAmount)),
-        sortOrder: offering.categories.length,
-      },
+    await prisma.$transaction(async (tx) => {
+      // The status above was read before this transaction opened. Re-checking
+      // it under the row lock is what stops this category landing on an
+      // offering finalized in between, where it would sit with no rate
+      // snapshot and set aside ₦0 for the rest of its life.
+      await assertStillDraft(tx, churchId, offering.id);
+
+      await tx.offeringCategory.create({
+        data: {
+          churchId,
+          offeringId: offering.id,
+          name,
+          isCash,
+          transferAmountKobo: isCash ? null : kobo(transferAmount),
+          sortOrder: offering.categories.length,
+        },
+      });
     });
 
-    res.status(201).json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
+    res.status(201).json({ data: await presentOffering(await findOffering(offering.churchId, offering.id), viewFor(req)) });
   },
 );
 
@@ -193,7 +217,8 @@ offeringsRouter.patch(
     }),
   }),
   async (req, res) => {
-    const offering = await findOffering(churchOf(req), param(req, "id"));
+    const churchId = churchOf(req);
+    const offering = await findOffering(churchId, param(req, "id"));
     assertEditable(offering);
 
     const category = offering.categories.find((c) => c.id === param(req, "categoryId"));
@@ -213,12 +238,19 @@ offeringsRouter.patch(
     }
 
     await prisma.$transaction(async (tx) => {
+      // Under the row lock, because the status above was read outside this
+      // transaction: without it a finalize can commit in between and these
+      // counts replace the ones that were just snapshotted and audited, so the
+      // offering's total no longer matches the figure anyone finalized and no
+      // revision names who changed it.
+      await assertStillDraft(tx, churchId, offering.id);
+
       await tx.offeringCategory.update({
         where: { id: category.id },
         data: {
           ...(name ? { name } : {}),
           ...(transferAmount !== undefined
-            ? { transferAmount: round(money(transferAmount)) }
+            ? { transferAmountKobo: kobo(transferAmount) }
             : {}),
         },
       });
@@ -239,32 +271,40 @@ offeringsRouter.patch(
       }
     });
 
-    res.json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
+    res.json({ data: await presentOffering(await findOffering(offering.churchId, offering.id), viewFor(req)) });
   },
 );
 
 offeringsRouter.delete("/:id/categories/:categoryId", canEdit, async (req, res) => {
-  const offering = await findOffering(churchOf(req), param(req, "id"));
+  const churchId = churchOf(req);
+  const offering = await findOffering(churchId, param(req, "id"));
   assertEditable(offering);
 
   const category = offering.categories.find((c) => c.id === param(req, "categoryId"));
   if (!category) throw notFound("That category");
 
-  await prisma.offeringCategory.delete({ where: { id: category.id } });
+  await prisma.$transaction(async (tx) => {
+    // Under the row lock, for the mirror of the PATCH case: a delete that
+    // commits after a finalize removes money from a figure already snapshotted
+    // and audited, with no revision recording the drop.
+    await assertStillDraft(tx, churchId, offering.id);
 
-  res.json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
+    await tx.offeringCategory.delete({ where: { id: category.id } });
+  });
+
+  res.json({ data: await presentOffering(await findOffering(offering.churchId, offering.id), viewFor(req)) });
 });
 
 // --- state changes -------------------------------------------------------
 
 offeringsRouter.post("/:id/finalize", canEdit, async (req, res) => {
   const offering = await finalizeOffering(churchOf(req), param(req, "id"), req.user!.sub);
-  res.json({ data: await presentOffering(offering) });
+  res.json({ data: await presentOffering(offering, viewFor(req)) });
 });
 
 offeringsRouter.post("/:id/approve", authorize(Role.PASTOR), async (req, res) => {
   const offering = await approveOffering(churchOf(req), param(req, "id"), req.user!.sub);
-  res.json({ data: await presentOffering(offering) });
+  res.json({ data: await presentOffering(offering, viewFor(req)) });
 });
 
 /// Lets the Pastor raise a question without it counting as approval or
@@ -285,7 +325,7 @@ offeringsRouter.post(
       },
     });
 
-    res.status(201).json({ data: await presentOffering(await findOffering(offering.churchId, offering.id)) });
+    res.status(201).json({ data: await presentOffering(await findOffering(offering.churchId, offering.id), viewFor(req)) });
   },
 );
 
@@ -298,22 +338,26 @@ offeringsRouter.post(
       categoryName: z.string().trim().min(1).optional(),
       deltaAmount: signedAmount,
       // Held by the client across a retry, so a double tap or a dropped
-      // connection cannot record the same late transfer twice.
-      idempotencyKey: z.string().trim().min(8, "Send a key of at least 8 characters"),
+      // connection cannot record the same late transfer twice. A UUID because
+      // that bounds the length too: an unbounded key passes validation and
+      // then exceeds the index limit in Postgres, which the Treasurer would
+      // meet as a failure with no field to correct. The message is what she
+      // would read, so it says what to do, not what the format is.
+      idempotencyKey: z
+        .string()
+        .trim()
+        .uuid("This correction could not be saved. Reload the page and try again."),
     }),
   }),
   async (req, res) => {
-    const offering = await recordRevision(
+    // 200, not 201, when the key resolved to a revision already recorded: the
+    // write happened earlier, and this request did not add one.
+    const { created, offering } = await recordRevision(
       churchOf(req),
       param(req, "id"),
       req.user!.sub,
-      req.body as {
-        reason: string;
-        categoryName?: string;
-        deltaAmount: string;
-        idempotencyKey: string;
-      },
+      req.body as RevisionInput,
     );
-    res.status(201).json({ data: await presentOffering(offering) });
+    res.status(created ? 201 : 200).json({ data: await presentOffering(offering, viewFor(req)) });
   },
 );

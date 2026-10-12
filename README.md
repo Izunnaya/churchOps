@@ -21,11 +21,10 @@ Prisma schema covers every entity, and route, middleware and domain files exist
 for authentication and offerings. The frontend has no `package.json`.
 
 `npx tsc --noEmit` reports one error, and it is deliberate. Signing in has to put
-the caller's church into the session token, and there is no way to derive it yet:
-the account models carry no church, because whether one account belongs to a
-single church or spans several is an open decision. Guessing would hard-code that
-answer into sign-in, so the call is left failing with the reasoning written beside
-it. Everything downstream — the scoping middleware and every scoped query — is
+the caller's church into the session token, and the account models do not carry
+one yet — that schema change is the next piece of work, now that the decision
+behind it is settled. The call is left failing with the reasoning written beside
+it rather than papered over. Everything downstream — the scoping middleware and every scoped query — is
 finished and waiting on that one value. The running server is unaffected, because
 no router is mounted: `npm run dev` still answers `/health`.
 
@@ -146,10 +145,11 @@ Tracked here rather than quietly:
   income-category queries are scoped to the session's church. What is missing is
   proof: see the test gap below.
 - The account models — `User` and its roles, sessions and tokens — have no
-  church column yet. `User.email` and `User.username` are globally unique, which
-  would forbid one person holding accounts at two churches. Whether that should
-  be allowed is an open decision, so the constraint is being left alone rather
-  than guessed at.
+  church column yet. The decision they were waiting on is made: one account
+  belongs to one church, so email and username stay unique across the whole
+  platform and a person serving two churches needs two addresses. The schema
+  change itself is still to do, which is why signing in cannot yet put a church
+  into the session and the type-check is red at that one line.
 - The type-check is red on purpose, at one line: sign-in cannot put a church into
   the session token until the cross-church identity decision is made. Every query
   that depends on it is already scoped. Nothing is mounted, so the server runs.
@@ -176,6 +176,16 @@ Tracked here rather than quietly:
   reset. Verification codes are at least capped at five attempts per code now,
   but per-address and per-IP limits need a library this project has not agreed
   to add yet.
+- A Church Secretary can work out the bucket rate for a category even though the
+  rate is not sent to her. She sees each category's amount and the offering's
+  total set-aside, and the rate is one division: on the project's own worked
+  example, 1,182,000 over 11,820,000 is exactly 10%. Three per-category fields
+  are withheld from her, but that is tidiness rather than a boundary — do not
+  mistake it for one. Keeping the aggregate visible is deliberate: she is granted
+  the weekly financial report, and that report carries the set-aside and usable
+  income. The real fix, if the rate ever needs to be confidential from her, is to
+  serve those figures from the weekly report endpoint under its own
+  authorization, not to withhold more fields here.
 - Two findings from the review pass are recorded and not yet fixed: approval
   lives in three mutable columns, so a revision followed by a re-approval
   overwrites who approved the original figure and when; and category-name
@@ -189,9 +199,6 @@ Tracked here rather than quietly:
   cannot correct past summaries.
 - `Church.enabledModules` is stored and never read, so it looks like access
   control and is not.
-- The schema represents money as `Decimal(14, 2)`. Every specification says
-  integer kobo. The correction touches every money path and is owned by this
-  repository's author.
 - Installed packages drift from the conventions in two places: `zod` where
   `express-validator` is specified, and `bcryptjs` where `bcrypt` is.
 - The church crest asset is missing; screens use the documented four-square

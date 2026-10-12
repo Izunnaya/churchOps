@@ -11,6 +11,17 @@
 //   2. "A late transfer creates a revision, never an overwrite." Finalized
 //      offerings are never mutated in place; OfferingRevision records what
 //      changed, who changed it, when and why.
+//   3. Money is a whole number of kobo in an `Int`, and every money field says
+//      so in its name. Decided 2026-10-07 (CONVENTIONS section 6). An `Int`
+//      holds about ₦21.4 million per stored value. That binds every single
+//      amount, and also the two whole-offering totals that *are* stored:
+//      OfferingRevision.originalTotalKobo and revisedTotalKobo. So an offering
+//      above ₦21.4 million finalizes but can never then be revised, because the
+//      revision's snapshot overflows the column. The decision is reopened on
+//      that ground — either those two columns become BigInt or the pair stops
+//      being stored and is derived on read — and is Michael's to settle; see
+//      CONVENTIONS section 6. `bucketRatePercent` and `bucketRateSnapshot` stay
+//      Decimal: a percentage is not money.
 
 generator client {
   provider = "prisma-client"
@@ -495,7 +506,7 @@ model OfferingCategory {
 
   /// Set only when isCash is false. Cash categories leave this null and derive
   /// their total from the counts.
-  transferAmount Decimal? @db.Decimal(14, 2)
+  transferAmountKobo Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -540,17 +551,19 @@ model OfferingRevision {
   /// Supplied by the client and unique per offering, so a double tap or a retry
   /// on a dropped connection resolves to the revision already written instead
   /// of recording the same late transfer twice. Build Spec section 16.4 requires
-  /// one on every finalize, submit, approve and revision endpoint; finalize and
-  /// approve are incidentally covered by their own status guards, a revision is
-  /// not, because a revised offering stays revisable.
+  /// one on every finalize, submit, approve and revision endpoint. Finalize and
+  /// approve need no key because each is explicitly guarded by a conditional
+  /// write on the status it is allowed to leave, so a second concurrent request
+  /// matches no row. A revision has no such guard, because a revised offering
+  /// stays revisable.
   idempotencyKey String
 
-  categoryName String?
-  deltaAmount  Decimal @db.Decimal(14, 2)
+  categoryName    String?
+  deltaAmountKobo Int
 
   /// Snapshotted so the revision stays readable even if categories change later.
-  originalTotal Decimal @db.Decimal(14, 2)
-  revisedTotal  Decimal @db.Decimal(14, 2)
+  originalTotalKobo Int
+  revisedTotalKobo  Int
 
   recordedById String?
   recordedBy   User?    @relation("RevisionRecordedBy", fields: [recordedById], references: [id], onDelete: SetNull)
@@ -680,10 +693,10 @@ model ExpenseItem {
   expenseId String
   expense   WeeklyExpense @relation(fields: [churchId, expenseId], references: [churchId, id], onDelete: Cascade)
 
-  name      String
-  amount    Decimal @db.Decimal(14, 2)
-  note      String?
-  sortOrder Int     @default(0)
+  name       String
+  amountKobo Int
+  note       String?
+  sortOrder  Int     @default(0)
 
   @@index([expenseId])
   @@index([churchId])
@@ -755,9 +768,9 @@ model DepartmentReport {
   status DepartmentReportStatus @default(DRAFT)
 
   // Weekly shape
-  attendanceCount Int?
-  offeringAmount  Decimal? @db.Decimal(14, 2)
-  visitorCount    Int?
+  attendanceCount    Int?
+  offeringAmountKobo Int?
+  visitorCount       Int?
 
   // Quarterly shape — prose rather than numbers
   achievements String?

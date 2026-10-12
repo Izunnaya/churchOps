@@ -41,11 +41,12 @@ async function issueSession(userId: string, userAgent?: string) {
     },
   });
 
-  // BLOCKED ON DEC-02. The token needs the one church this session acts for,
-  // and there is no way to derive it yet: User has no churchId, and neither do
-  // UserRole or Session, because whether an account belongs to one church or
-  // spans several is exactly what DEC-02 decides. Guessing here would hard-code
-  // that answer into sign-in, so this deliberately does not compile. Everything
+  // BLOCKED ON A SCHEMA CHANGE, NOT A QUESTION. DEC-02 was decided on
+  // 2026-10-07 (CONVENTIONS section 6): one account belongs to exactly one
+  // church, and `User` carries a required `churchId`. What is missing is only
+  // that column and its migration, which the decision already authorises; the
+  // token needs the one church this session acts for and there is nothing to
+  // read it from yet, so this deliberately does not compile. Everything
   // downstream of the token — the scoping middleware and every scoped query —
   // is finished and waiting on this one value.
   const accessToken = signAccessToken({

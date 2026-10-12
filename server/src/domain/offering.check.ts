@@ -34,7 +34,7 @@ const totals = computeOfferingTotals(
     },
     { name: "Thanksgiving", isCash: true, denominations: [{ denomination: 100, quantity: 123 }] },
     // Transfer: no cash behind it at all.
-    { name: "Seed Faith", isCash: false, transferAmount: 3500 },
+    { name: "Seed Faith", isCash: false, transferAmountKobo: 350_000 },
   ],
   rates,
 );
@@ -50,13 +50,13 @@ const expected: Record<string, string> = {
 };
 
 const actual: Record<string, string> = {
-  "Tithe amount": formatNaira(totals.categories[0].amount),
-  "Tithe net": formatNaira(totals.categories[0].netAmount),
-  "Worship Offering amount": formatNaira(totals.categories[1].amount),
-  "Worship Offering net": formatNaira(totals.categories[1].netAmount),
-  "Set aside to bucket": formatNaira(totals.bucketTotal),
-  "Categories total": formatNaira(totals.categoriesTotal),
-  "Usable income": formatNaira(totals.usableIncome),
+  "Tithe amount": formatNaira(totals.categories[0].amountKobo),
+  "Tithe net": formatNaira(totals.categories[0].netAmountKobo),
+  "Worship Offering amount": formatNaira(totals.categories[1].amountKobo),
+  "Worship Offering net": formatNaira(totals.categories[1].netAmountKobo),
+  "Set aside to bucket": formatNaira(totals.bucketTotalKobo),
+  "Categories total": formatNaira(totals.categoriesTotalKobo),
+  "Usable income": formatNaira(totals.usableIncomeKobo),
 };
 
 let failures = 0;
@@ -68,9 +68,9 @@ for (const key of Object.keys(expected)) {
 
 // The cash/transfer split must stay visible and must NOT read as an imbalance.
 console.log("");
-console.log(`cash counted      ${formatNaira(totals.cashTotal)}`);
-console.log(`transfers         ${formatNaira(totals.transferTotal)}`);
-console.log(`difference        ${formatNaira(totals.categoriesTotal.sub(totals.cashTotal))}  <- normal, a transfer with no cash behind it`);
+console.log(`cash counted      ${formatNaira(totals.cashTotalKobo)}`);
+console.log(`transfers         ${formatNaira(totals.transferTotalKobo)}`);
+console.log(`difference        ${formatNaira(totals.categoriesTotalKobo - totals.cashTotalKobo)}  <- normal, a transfer with no cash behind it`);
 
 // A category with no counts entered yet is zero, not an error.
 console.log("");

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../../lib/prisma";
+import { Prisma } from "../../generated/prisma/client";
 import { Role } from "../../generated/prisma/enums";
 import { authenticate } from "../../middleware/authenticate";
 import { authorize } from "../../middleware/authorize";
@@ -8,6 +9,7 @@ import { churchOf, scopeToChurch } from "../../middleware/scopeToChurch";
 import { validate } from "../../middleware/validate";
 import { conflict, notFound } from "../../lib/errors";
 import { param } from "../../lib/http";
+import { formatRatePercent } from "../../lib/money";
 
 /// Backs both the "Add category" sheet and the Treasurer's bucket-rate table.
 /// They are one list on purpose: a rate table keyed separately by category name
@@ -36,18 +38,7 @@ incomeCategoriesRouter.get(
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
 
-    res.json({
-      data: categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-        isCashByDefault: category.isCashByDefault,
-        bucketRatePercent: category.bucketRatePercent
-          ? category.bucketRatePercent.toFixed(2)
-          : null,
-        sortOrder: category.sortOrder,
-        active: category.active,
-      })),
-    });
+    res.json({ data: categories.map(presentIncomeCategory) });
   },
 );
 
@@ -89,7 +80,7 @@ incomeCategoriesRouter.post(
       },
     });
 
-    res.status(201).json({ data: category });
+    res.status(201).json({ data: presentIncomeCategory(category) });
   },
 );
 
@@ -136,7 +127,7 @@ incomeCategoriesRouter.patch(
       },
     });
 
-    res.json({ data: category });
+    res.json({ data: presentIncomeCategory(category) });
   },
 );
 
@@ -154,5 +145,26 @@ incomeCategoriesRouter.delete("/:id", authorize(Role.TREASURER), async (req, res
     data: { active: false, updatedById: req.user!.sub },
   });
 
-  res.json({ data: category });
+  res.json({ data: presentIncomeCategory(category) });
 });
+
+/// One shape for every response here, so a rate leaves this module as "10.00"
+/// whether it was just written or read back — a `Decimal` renders "10" on its
+/// own, and the offering endpoints state the same field the same way.
+function presentIncomeCategory(category: {
+  id: string;
+  name: string;
+  isCashByDefault: boolean;
+  bucketRatePercent: Prisma.Decimal | null;
+  sortOrder: number;
+  active: boolean;
+}) {
+  return {
+    id: category.id,
+    name: category.name,
+    isCashByDefault: category.isCashByDefault,
+    bucketRatePercent: formatRatePercent(category.bucketRatePercent),
+    sortOrder: category.sortOrder,
+    active: category.active,
+  };
+}
