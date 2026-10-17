@@ -5,13 +5,17 @@
     "moduleResolution": "node",
     "lib": ["ES2022"],
     "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    // This project checks, it never emits. `npx tsc --noEmit` is the gate, and
+    // it has to cover the tests too: a test is code, and a type error in one
+    // is a test that does not run. Emitting is tsconfig.build.json's job, and
+    // that one compiles src only so no test ever lands in dist.
+    "noEmit": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "tests/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

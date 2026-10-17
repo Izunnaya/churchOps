@@ -1,5 +1,10 @@
 node_modules
-# Keep environment variables out of version control
+# Keep environment variables out of version control. The pattern has to
+# cover .env.test too: a test database URL is still a credential, and this
+# repository is public. Only the .example files are ever committed.
 .env
+.env.*
+!.env.example
+!.env.test.example
 
 /src/generated/prisma

@@ -183,6 +183,11 @@ export async function presentOffering(
 
       return {
         ...row,
+        // The computed row's id is optional because the same computation also
+        // serves the provisional total the device shows while counting, where
+        // no row is saved yet. Here every category is a saved row, so the id
+        // comes from the row itself and the response type says so.
+        id: category.id,
         ...(view.showBucketRates
           ? {
               bucketRatePercent: formatRatePercent(bucketRatePercent),
