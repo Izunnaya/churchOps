@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "esnext",
+    "types": ["vite/client", "node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode, matching tsconfig.app.json so a test sees what the app sees */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    /* A test renders app components, so it reads .tsx the way the app does. */
+    "jsx": "react-jsx",
+
+    "strict": true,
+    /*
+      `noUncheckedIndexedAccess` is on for the app and deliberately off here.
+      These tests import server source, which is checked under
+      server/tsconfig.json, and that project does not set the flag — turning it
+      on in this one reports errors against server code that is correct where it
+      lives, and buries the contract failures this project exists to show.
+    */
+    "noUncheckedIndexedAccess": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  /*
+    tsconfig.app.json covers `src` only, so until this file existed nothing
+    type-checked the tests — the deliberate contract failures in
+    tests/apiContract.types.ts passed silently. `tests` and the one setup file
+    the runner loads are listed: what they import, on both sides of the repo, is
+    pulled in with them, and the app files themselves are already checked by
+    tsconfig.app.json.
+  */
+  "include": ["tests", "vitest.setup.ts"]
+}

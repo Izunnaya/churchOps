@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/*
+  The only file in this application that is allowed to contain a hex value.
+  Every colour, size, radius and metric below is transcribed from
+  design/DESIGN-SPEC.md section 3. Components reference the generated utilities
+  (bg-surface, text-ink-3, min-h-touch …) and never a literal.
+
+  The crest accents are TBC's. They are tokens, not hard-coded branding: when a
+  church's own accent set arrives from its settings it overrides the four
+  --color-accent-* values at the document root, and nothing else has to change.
+*/
+@theme {
+  /* --- Typeface ------------------------------------------------------- */
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+
+  /* --- Crest accents ---------------------------------------------------
+     Small accents only — status chips, the primary button, chart fills.
+     Never a surface colour. */
+  --color-accent-red: #a6342c; /* Cross — destructive, returned, required */
+  --color-accent-blue: #2e5fa3; /* Cup — primary action, focus, active nav */
+  --color-accent-blue-dark: #24497d; /* link hover */
+  --color-accent-gold: #b08a24; /* Dove */
+  --color-accent-purple: #5d4487; /* Crown — approved */
+
+  /* --- Neutral base --------------------------------------------------- */
+  --color-page: #faf9f7;
+  --color-canvas: #efede8;
+  --color-surface: #ffffff;
+  --color-sunken: #f5f3ef;
+
+  --color-ink: #211f1c;
+  --color-ink-2: #4a463f;
+  --color-ink-3: #5f5b54;
+  --color-ink-4: #6b665e;
+  --color-ink-5: #8a857c;
+  --color-ink-6: #a29c90;
+
+  --color-line: #e4e1db; /* card borders */
+  --color-line-2: #eeece7; /* row dividers */
+  --color-line-3: #c9c5bc; /* input borders */
+  --color-line-4: #d8d4cc; /* chip borders, menus */
+
+  --color-tint-blue: #edf2f9;
+  --color-tint-blue-2: #c7d6eb;
+  --color-row-selected: #f1f4f9;
+  --color-neutral-bg: #f1efea;
+
+  /* --- Status chips ----------------------------------------------------
+     One triple per OfferingStatus. Status is always icon + label, so these
+     reinforce the label and never carry the meaning on their own.
+     The deck also specifies returned / waiting / due / comment / none; those
+     belong to screens that do not exist yet and are deliberately absent. */
+  --color-status-draft-bg: #f1efea;
+  --color-status-draft-border: #d8d4cc;
+  --color-status-draft-ink: #4a463f;
+
+  --color-status-finalized-bg: #edf2f9;
+  --color-status-finalized-border: #c7d6eb;
+  --color-status-finalized-ink: #2e5fa3;
+
+  --color-status-approved-bg: #f2eef8;
+  --color-status-approved-border: #d9cfea;
+  --color-status-approved-ink: #5d4487;
+
+  --color-status-revised-bg: #f8f2e2;
+  --color-status-revised-border: #e5d6ab;
+  --color-status-revised-ink: #7a5e17;
+
+  /* --- Type scale ------------------------------------------------------ */
+  --text-page-title: 21px;
+  --text-page-title--line-height: 1.25;
+  --text-page-title--font-weight: 700;
+
+  --text-detail-header: 18.5px;
+  --text-detail-header--line-height: 1.3;
+  --text-detail-header--font-weight: 700;
+
+  --text-section-label: 13px;
+  --text-section-label--line-height: 1.3;
+  --text-section-label--font-weight: 700;
+  --text-section-label--letter-spacing: 0.05em;
+
+  --text-row-title: 16.5px;
+  --text-row-title--line-height: 1.35;
+  --text-row-title--font-weight: 600;
+
+  --text-body: 17px;
+  --text-body--line-height: 1.5;
+
+  --text-input: 18px;
+  --text-input--line-height: 1.4;
+
+  --text-large-input: 20px;
+  --text-large-input--line-height: 1.3;
+  --text-large-input--font-weight: 600;
+
+  --text-button: 16.5px;
+  --text-button--line-height: 1.2;
+  --text-button--font-weight: 600;
+
+  --text-stat: 26px;
+  --text-stat--line-height: 1.15;
+  --text-stat--font-weight: 700;
+
+  --text-kv: 22px;
+  --text-kv--line-height: 1.2;
+  --text-kv--font-weight: 700;
+
+  --text-secondary: 14.5px;
+  --text-secondary--line-height: 1.4;
+
+  --text-hint: 13px;
+  --text-hint--line-height: 1.4;
+
+  --text-chip: 13px;
+  --text-chip--line-height: 1.2;
+  --text-chip--font-weight: 600;
+
+  --text-chip-small: 12.5px;
+  --text-chip-small--line-height: 1.2;
+  --text-chip-small--font-weight: 600;
+
+  /* --- Metrics ---------------------------------------------------------
+     Touch targets are never below --spacing-touch. */
+  --spacing-touch: 48px;
+  --spacing-control: 52px; /* button height */
+  --spacing-field: 54px; /* input height */
+  --spacing-pill: 44px;
+  --spacing-topbar: 76px;
+  --spacing-sidebar: 248px;
+  --spacing-list-pane: 280px;
+  --spacing-side-panel: 300px;
+  --spacing-modal: 520px;
+
+  --radius-card: 8px;
+  --radius-modal: 12px;
+  --radius-pill: 999px;
+}
+
+/*
+  Every Naira figure carries this. Kobo arrive from the server as whole
+  integers and are formatted for display only; tabular numerals keep the
+  columns lined up when they are.
+*/
+@utility money {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inputs and buttons are 1.5px, cards and dividers 1px. */
+@utility border-control {
+  border-width: 1.5px;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.5;
+  }
+
+  /* 18px on device, so a 50-year-old treasurer can read what she typed. */
+  input,
+  select,
+  textarea {
+    font-size: var(--text-input);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent-blue);
+    outline-offset: 2px;
+  }
+}

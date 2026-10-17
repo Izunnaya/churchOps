@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      No favicon yet, deliberately. The Vite template's own mark was template
+      debris, and a church crest is that church's asset, so it cannot be the
+      product icon either. A neutral product icon is Michael's to supply.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      IBM Plex Sans at 400/500/600/700. Served from Google Fonts rather than a
+      bundled font package, so no dependency is added for it; system-ui is the
+      fallback the design spec names, and it is what renders if the font never
+      arrives.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Product-level. The signed-in church's own name comes from its settings. -->
+    <title>Church Operations</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
