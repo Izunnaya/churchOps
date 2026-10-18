@@ -26,10 +26,10 @@ CREATE TYPE "AttendanceSource" AS ENUM ('USHER', 'SECRETARY');
 CREATE TYPE "OfferingStatus" AS ENUM ('DRAFT', 'FINALIZED', 'APPROVED', 'REVISED');
 
 -- CreateEnum
-CREATE TYPE "FinancialReportStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'APPROVED');
+CREATE TYPE "FinancialReportStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'APPROVED', 'RETURNED');
 
 -- CreateEnum
-CREATE TYPE "ExpenseStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'APPROVED');
+CREATE TYPE "ExpenseStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'APPROVED', 'RETURNED');
 
 -- CreateEnum
 CREATE TYPE "ReportKind" AS ENUM ('WEEKLY', 'QUARTERLY');
@@ -38,7 +38,7 @@ CREATE TYPE "ReportKind" AS ENUM ('WEEKLY', 'QUARTERLY');
 CREATE TYPE "DepartmentReportStatus" AS ENUM ('DRAFT', 'SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'RETURNED');
 
 -- CreateEnum
-CREATE TYPE "ImportRowStatus" AS ENUM ('READY', 'DUPLICATE', 'MISSING_SEX', 'MISSING_NAME', 'IMPORTED', 'SKIPPED', 'MERGED');
+CREATE TYPE "ImportRowStatus" AS ENUM ('READY', 'DUPLICATE', 'MISSING_SEX', 'MISSING_DOB', 'MISSING_NAME', 'IMPORTED', 'SKIPPED', 'MERGED');
 
 -- CreateEnum
 CREATE TYPE "NotificationChannel" AS ENUM ('IN_APP', 'WHATSAPP');
@@ -135,6 +135,7 @@ CREATE TABLE "Member" (
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "sex" "Sex",
+    "dateOfBirth" DATE,
     "phone" TEXT,
     "email" TEXT,
     "address" TEXT,
@@ -522,9 +523,6 @@ CREATE INDEX "Service_heldOn_idx" ON "Service"("heldOn");
 
 -- CreateIndex
 CREATE INDEX "Service_churchId_idx" ON "Service"("churchId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Service_churchId_heldOn_kind_key" ON "Service"("churchId", "heldOn", "kind");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Service_churchId_id_key" ON "Service"("churchId", "id");
