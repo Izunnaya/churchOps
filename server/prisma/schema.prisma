@@ -275,6 +275,13 @@ model Member {
   firstName String
   lastName  String
   sex       Sex?
+
+  // DEC-08, decided 2026-10-17. Nullable on purpose: an usher adding a
+  // first-timer mid-service captures a name and a phone, and the designer
+  // brief is explicit that a missing date of birth is set aside, never
+  // invented. The attendance split counts a child as under 12 on the service
+  // date; the age is computed from this column, never stored.
+  dateOfBirth DateTime? @db.Date
   phone     String?
   email     String?
   address   String?
@@ -370,7 +377,12 @@ model Service {
   summary    AttendanceSummary?
   offering   Offering?
 
-  @@unique([churchId, heldOn, kind])
+  // DEC-06, decided 2026-10-17: a date and a kind do NOT identify a service.
+  // A convention with a morning and an evening session on one day is two
+  // services of the same kind, and the earlier unique on (churchId, heldOn,
+  // kind) made that impossible to record. One offering per service still
+  // holds, below on Offering - two collections at one service are two
+  // categories, not two offerings.
   @@unique([churchId, id])
   @@index([heldOn])
   @@index([churchId])
@@ -610,10 +622,14 @@ model IncomeCategory {
 // Financial reporting
 // ---------------------------------------------------------------------------
 
+// DEC-10, decided 2026-10-17: the Pastor's "Not yet" needs a state to move
+// to. Without RETURNED a disagreed submission stays SUBMITTED for ever with
+// a comment as its only trace.
 enum FinancialReportStatus {
   DRAFT
   SUBMITTED
   APPROVED
+  RETURNED
 }
 
 /// Which offerings belong to a week is derived from Service.heldOn falling
@@ -651,10 +667,14 @@ model WeeklyFinancialReport {
   @@index([churchId])
 }
 
+// DEC-10, decided 2026-10-17: the Pastor's "Not yet" needs a state to move
+// to. Without RETURNED a disagreed submission stays SUBMITTED for ever with
+// a comment as its only trace.
 enum ExpenseStatus {
   DRAFT
   SUBMITTED
   APPROVED
+  RETURNED
 }
 
 model WeeklyExpense {
@@ -808,6 +828,7 @@ enum ImportRowStatus {
   READY
   DUPLICATE
   MISSING_SEX
+  MISSING_DOB
   MISSING_NAME
   IMPORTED
   SKIPPED
